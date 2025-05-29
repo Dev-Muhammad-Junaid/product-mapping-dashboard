@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingredient Mapping System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        .loader {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .log-success { @apply text-green-600 bg-green-50 border-green-200; }
+        .log-error { @apply text-red-600 bg-red-50 border-red-200; }
+        .log-info { @apply text-blue-600 bg-blue-50 border-blue-200; }
+        .log-warning { @apply text-yellow-600 bg-yellow-50 border-yellow-200; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Ingredient Mapping System</h1>
+            <p class="text-gray-600">Automatically map product ingredients to standardized database entries using fuzzy matching</p>
+        </div>
+
+        <!-- Status Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Products Loaded</h3>
+                <p class="text-2xl font-bold text-blue-600" id="products-count">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Ingredients Database</h3>
+                <p class="text-2xl font-bold text-green-600" id="ingredients-count">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Mapped</h3>
+                <p class="text-2xl font-bold text-green-600" id="mapped-count">0</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Unmapped</h3>
+                <p class="text-2xl font-bold text-red-600" id="unmapped-count">0</p>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Control Panel</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <button id="load-data-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                    Load Data Files
+                </button>
+                <button id="process-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" disabled>
+                    Process Ingredients
+                </button>
+                <button id="export-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" disabled>
+                    Export Results
+                </button>
+                <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                    Reset All
+                </button>
+            </div>
+
+            <!-- Settings -->
+            <div class="border-t pt-4">
+                <h3 class="text-lg font-medium text-gray-700 mb-3">Settings</h3>
+                <div class="flex items-center space-x-4">
+                    <label class="text-sm font-medium text-gray-600">Confidence Threshold:</label>
+                    <input type="range" id="confidence-slider" min="60" max="95" value="85" class="flex-1">
+                    <span id="confidence-value" class="text-sm font-medium text-gray-800 min-w-[3rem]">85%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <a href="#" class="tab-link border-blue-500 text-blue-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="data-sources">
+                        Data Sources
+                    </a>
+                    <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="results">
+                        Mapping Results
+                    </a>
+                    <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="unmapped">
+                        Unmapped Ingredients
+                    </a>
+                    <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="live-logs">
+                        Live Processing
+                    </a>
+                    <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="logs">
+                        Processing Logs
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Data Sources Tab -->
+                <div id="data-sources-tab" class="tab-content">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Data Sources</h3>
+                        <p class="text-gray-600 text-sm mb-4">Upload your CSV files or use default data sources for ingredient mapping.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Products File -->
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <h4 class="text-md font-medium text-gray-800 mb-3">Products File</h4>
+                            <p class="text-sm text-gray-600 mb-4">CSV file containing products and their ingredient lists</p>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Upload Products CSV:</label>
+                                <input type="file" id="products-file-input" accept=".csv" 
+                                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            </div>
+                            
+                            <div id="products-preview" class="hidden">
+                                <div class="bg-gray-50 rounded-md p-3 mb-3">
+                                    <h5 class="font-medium text-gray-800 mb-2">File Info:</h5>
+                                    <div id="products-file-info" class="text-sm text-gray-600"></div>
+                                </div>
+                                <button id="view-products-details" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    View Full Preview →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ingredients Database File -->
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <h4 class="text-md font-medium text-gray-800 mb-3">Ingredients Database</h4>
+                            <p class="text-sm text-gray-600 mb-4">CSV file containing standardized ingredient database</p>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Upload Ingredients CSV:</label>
+                                <input type="file" id="ingredients-file-input" accept=".csv" 
+                                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                            </div>
+                            
+                            <div id="ingredients-preview" class="hidden">
+                                <div class="bg-gray-50 rounded-md p-3 mb-3">
+                                    <h5 class="font-medium text-gray-800 mb-2">File Info:</h5>
+                                    <div id="ingredients-file-info" class="text-sm text-gray-600"></div>
+                                </div>
+                                <button id="view-ingredients-details" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    View Full Preview →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-md font-medium text-gray-800">Ready to Process</h4>
+                                <p class="text-sm text-gray-600">Upload files above or use default data sources</p>
+                            </div>
+                            <button id="load-with-files" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200">
+                                Load Data & Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Tab -->
+                <div id="results-tab" class="tab-content hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Original Ingredient</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matched Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-table" class="bg-white divide-y divide-gray-200">
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Unmapped Tab -->
+                <div id="unmapped-tab" class="tab-content hidden">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Manual Mapping</h3>
+                        <p class="text-gray-600 text-sm mb-4">Click on an unmapped ingredient to manually assign it to a database entry.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Original Ingredient</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Normalized</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unmapped-table" class="bg-white divide-y divide-gray-200">
+                                <!-- Unmapped results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Live Logs Tab -->
+                <div id="live-logs-tab" class="tab-content hidden">
+                    <div class="mb-4 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800 mb-2">Live Processing Stream</h3>
+                            <p class="text-gray-600 text-sm">Watch ingredient mapping progress in real-time</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="clear-live-logs" class="px-3 py-1 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded">
+                                Clear Logs
+                            </button>
+                            <button id="toggle-auto-scroll" class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded">
+                                Auto-scroll: ON
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-black text-green-400 font-mono text-sm rounded-lg p-4 h-96 overflow-y-auto" id="live-logs-container">
+                        <div class="text-gray-500">Waiting for processing to start...</div>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div id="logs-tab" class="tab-content hidden">
+                    <div class="mb-4 flex items-center">
+                        <input id="log-search-input" type="text" placeholder="Search product..." class="border border-gray-300 rounded px-3 py-2 text-sm w-full max-w-xs mr-2" />
+                        <span class="text-gray-400 text-xs">(Search by product name)</span>
+                    </div>
+                    <div class="space-y-3" id="logs-container">
+                        <!-- Logs will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-8 text-center">
+                <div class="loader mx-auto mb-4"></div>
+                <p class="text-gray-600" id="loading-text">Processing...</p>
+            </div>
+        </div>
+
+        <!-- Manual Mapping Modal -->
+        <div id="mapping-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Manual Mapping</h3>
+                <p class="text-sm text-gray-600 mb-2">Original Ingredient:</p>
+                <p class="font-medium text-gray-800 mb-4" id="modal-ingredient"></p>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Database:</label>
+                    <input type="text" id="ingredient-search" placeholder="Type to search ingredients..." 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div id="search-results" class="mt-2 max-h-48 overflow-y-auto border border-gray-200 rounded hidden">
+                        <!-- Search results will appear here -->
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button id="cancel-mapping" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancel</button>
+                    <button id="confirm-mapping" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded disabled:opacity-50" disabled>
+                        Map Ingredient
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Preview Modal -->
+        <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-800" id="preview-title">Data Preview</h3>
+                    <button id="close-preview" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                    <!-- File Statistics -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="text-sm font-medium text-blue-800 mb-1">Total Rows</h4>
+                            <p class="text-2xl font-bold text-blue-600" id="preview-rows">-</p>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <h4 class="text-sm font-medium text-green-800 mb-1">Total Columns</h4>
+                            <p class="text-2xl font-bold text-green-600" id="preview-columns">-</p>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-4">
+                            <h4 class="text-sm font-medium text-yellow-800 mb-1">Column Mapping</h4>
+                            <p class="text-sm text-yellow-600" id="preview-mapping">-</p>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <h4 class="text-sm font-medium text-purple-800 mb-1">Missing Values</h4>
+                            <p class="text-sm text-purple-600" id="preview-nulls">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Column Information -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium text-gray-800 mb-3">Column Information</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Column Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Type</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Null Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="preview-columns-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Column info will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Sample Data -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium text-gray-800 mb-3">Sample Data (First 10 Rows)</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50" id="preview-data-header">
+                                    <!-- Headers will be populated here -->
+                                </thead>
+                                <tbody id="preview-data-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Sample data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Info Modal -->
+        <div id="product-info-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+                <h3 class="text-lg font-medium text-gray-800 mb-4" id="product-info-title">Product Info</h3>
+                <div class="mb-4">
+                    <h4 class="font-semibold text-sm text-green-700 mb-1">Mapped Ingredients</h4>
+                    <ul id="product-info-mapped" class="list-disc list-inside text-sm text-gray-700 mb-3"></ul>
+                    <h4 class="font-semibold text-sm text-red-700 mb-1">Unmapped Ingredients</h4>
+                    <ul id="product-info-unmapped" class="list-disc list-inside text-sm text-gray-700"></ul>
+                </div>
+                <div class="flex justify-end">
+                    <button id="close-product-info" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentMappingIngredient = null;
+        let selectedIngredientId = null;
+        let eventSource = null;
+        let autoScroll = true;
+        
+        // File upload state
+        let uploadedFiles = {
+            products: null,
+            ingredients: null
+        };
+
+        // Store last loaded mapping/unmapped for product info modal
+        let lastResults = { mapped: [], unmapped: [] };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateConfidenceDisplay();
+        });
+
+        function setupEventListeners() {
+            // Button event listeners
+            document.getElementById('load-data-btn').addEventListener('click', loadData);
+            document.getElementById('load-with-files').addEventListener('click', loadDataWithFiles);
+            document.getElementById('process-btn').addEventListener('click', processIngredients);
+            document.getElementById('export-btn').addEventListener('click', exportResults);
+            document.getElementById('reset-btn').addEventListener('click', resetAll);
+            document.getElementById('close-product-info').addEventListener('click', closeProductInfoModal);
+            document.getElementById('log-search-input').addEventListener('input', filterLogs);
+
+            // Confidence slider
+            document.getElementById('confidence-slider').addEventListener('input', updateConfidenceDisplay);
+
+            // Tab switching
+            document.querySelectorAll('.tab-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            // Modal event listeners
+            document.getElementById('cancel-mapping').addEventListener('click', closeModal);
+            document.getElementById('confirm-mapping').addEventListener('click', confirmMapping);
+            document.getElementById('ingredient-search').addEventListener('input', searchIngredients);
+
+            // Live logs controls
+            document.getElementById('clear-live-logs').addEventListener('click', clearLiveLogs);
+            document.getElementById('toggle-auto-scroll').addEventListener('click', toggleAutoScroll);
+            
+            // File upload event listeners
+            document.getElementById('products-file-input').addEventListener('change', function(e) {
+                handleFileUpload(e, 'products');
+            });
+            document.getElementById('ingredients-file-input').addEventListener('change', function(e) {
+                handleFileUpload(e, 'ingredients');
+            });
+            
+            // Preview modal event listeners
+            document.getElementById('close-preview').addEventListener('click', closePreviewModal);
+            document.getElementById('view-products-details').addEventListener('click', function() {
+                showDataPreview(uploadedFiles.products.filepath, 'Products File Preview');
+            });
+            document.getElementById('view-ingredients-details').addEventListener('click', function() {
+                showDataPreview(uploadedFiles.ingredients.filepath, 'Ingredients Database Preview');
+            });
+        }
+
+        function updateConfidenceDisplay() {
+            const slider = document.getElementById('confidence-slider');
+            const display = document.getElementById('confidence-value');
+            display.textContent = slider.value + '%';
+        }
+
+        async function handleFileUpload(event, fileType) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            showLoading(`Validating ${fileType} file...`);
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('type', fileType);
+                
+                const response = await axios.post('/api/upload-file', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                
+                if (response.data.success) {
+                    uploadedFiles[fileType] = response.data.preview;
+                    showFilePreview(fileType, response.data.preview);
+                    showNotification(`${fileType} file uploaded successfully!`, 'success');
+                } else {
+                    showNotification(`File validation failed: ${response.data.error}`, 'error');
+                    event.target.value = ''; // Clear the input
+                }
+            } catch (error) {
+                showNotification(`Error uploading file: ${error.message}`, 'error');
+                event.target.value = ''; // Clear the input
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function showFilePreview(fileType, preview) {
+            const previewElement = document.getElementById(`${fileType}-preview`);
+            const infoElement = document.getElementById(`${fileType}-file-info`);
+            
+            // Show file information
+            const columnMappingText = fileType === 'products' 
+                ? `Product: ${preview.column_mapping.product_col}, Ingredients: ${preview.column_mapping.ingredient_col}`
+                : `ID: ${preview.column_mapping.id_col}, Name: ${preview.column_mapping.name_col}`;
+            
+            infoElement.innerHTML = `
+                <div class="space-y-1">
+                    <div><strong>File:</strong> ${preview.filename}</div>
+                    <div><strong>Rows:</strong> ${preview.rows.toLocaleString()}</div>
+                    <div><strong>Columns:</strong> ${preview.columns.length}</div>
+                    <div><strong>Mapping:</strong> ${columnMappingText}</div>
+                </div>
+            `;
+            
+            previewElement.classList.remove('hidden');
+        }
+
+        async function loadDataWithFiles() {
+            showLoading('Loading data with uploaded files...');
+            
+            try {
+                const formData = new FormData();
+                
+                // Re-upload files if available (we need the original file objects)
+                const productsInput = document.getElementById('products-file-input');
+                const ingredientsInput = document.getElementById('ingredients-file-input');
+                
+                if (productsInput.files[0]) {
+                    formData.append('products_file', productsInput.files[0]);
+                }
+                
+                if (ingredientsInput.files[0]) {
+                    formData.append('ingredients_file', ingredientsInput.files[0]);
+                }
+                
+                const response = await axios.post('/api/load-data', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                
+                if (response.data.success) {
+                    document.getElementById('products-count').textContent = response.data.products_count;
+                    document.getElementById('ingredients-count').textContent = response.data.ingredients_count;
+                    document.getElementById('process-btn').disabled = false;
+                    updateLogs(response.data.logs);
+                    showNotification('Data loaded successfully!', 'success');
+                    
+                    // Switch to results tab
+                    switchTab('results');
+                } else {
+                    showNotification('Failed to load data', 'error');
+                }
+            } catch (error) {
+                showNotification('Error loading data: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function showDataPreview(filepath, title) {
+            showLoading('Loading preview data...');
+            
+            try {
+                const response = await axios.post('/api/preview-file', {
+                    filepath: filepath
+                });
+                
+                if (response.data.success) {
+                    populatePreviewModal(response.data.stats, title);
+                    document.getElementById('preview-modal').classList.remove('hidden');
+                    document.getElementById('preview-modal').classList.add('flex');
+                } else {
+                    showNotification('Error loading preview: ' + response.data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error loading preview: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function populatePreviewModal(stats, title) {
+            document.getElementById('preview-title').textContent = title;
+            document.getElementById('preview-rows').textContent = stats.total_rows.toLocaleString();
+            document.getElementById('preview-columns').textContent = stats.total_columns;
+            
+            // Column mapping info
+            const mappingText = Object.entries(stats.column_types)
+                .slice(0, 3)
+                .map(([col, type]) => `${col}: ${type}`)
+                .join(', ');
+            document.getElementById('preview-mapping').textContent = mappingText;
+            
+            // Null counts summary
+            const totalNulls = Object.values(stats.null_counts).reduce((sum, count) => sum + count, 0);
+            document.getElementById('preview-nulls').textContent = totalNulls === 0 ? 'None' : `${totalNulls} total`;
+            
+            // Populate columns table
+            const columnsTable = document.getElementById('preview-columns-table');
+            columnsTable.innerHTML = '';
+            stats.columns.forEach(column => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-900">${column}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.column_types[column] || 'Unknown'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stats.null_counts[column] || 0}</td>
+                `;
+                columnsTable.appendChild(row);
+            });
+            
+            // Populate sample data table
+            const dataHeader = document.getElementById('preview-data-header');
+            const dataTable = document.getElementById('preview-data-table');
+            
+            // Clear existing content
+            dataHeader.innerHTML = '';
+            dataTable.innerHTML = '';
+            
+            if (stats.sample_data.length > 0) {
+                // Create header
+                const headerRow = document.createElement('tr');
+                stats.columns.forEach(column => {
+                    const th = document.createElement('th');
+                    th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                    th.textContent = column;
+                    headerRow.appendChild(th);
+                });
+                dataHeader.appendChild(headerRow);
+                
+                // Create data rows
+                stats.sample_data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    stats.columns.forEach(column => {
+                        const td = document.createElement('td');
+                        td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate';
+                        td.textContent = row[column] || '';
+                        td.title = row[column] || ''; // Tooltip for truncated content
+                        tr.appendChild(td);
+                    });
+                    dataTable.appendChild(tr);
+                });
+            }
+        }
+        
+        function closePreviewModal() {
+            document.getElementById('preview-modal').classList.add('hidden');
+            document.getElementById('preview-modal').classList.remove('flex');
+        }
+
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            document.getElementById('loading-overlay').classList.add('flex');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('loading-overlay').classList.remove('flex');
+        }
+
+        async function loadData() {
+            showLoading('Loading data files...');
+            try {
+                const response = await axios.post('/api/load-data');
+                if (response.data.success) {
+                    document.getElementById('products-count').textContent = response.data.products_count;
+                    document.getElementById('ingredients-count').textContent = response.data.ingredients_count;
+                    document.getElementById('process-btn').disabled = false;
+                    updateLogs(response.data.logs);
+                    showNotification('Data loaded successfully!', 'success');
+                } else {
+                    showNotification('Failed to load data', 'error');
+                }
+            } catch (error) {
+                showNotification('Error loading data: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function processIngredients() {
+            console.log('[Overlay] Not showing loading overlay during live log streaming.');
+            // Start live log stream and switch to live logs tab
+            startLiveLogStream();
+            switchTab('live-logs');
+            try {
+                const confidence = document.getElementById('confidence-slider').value;
+                const response = await axios.post('/api/process', {
+                    confidence_threshold: parseInt(confidence)
+                });
+                if (response.data.success) {
+                    document.getElementById('mapped-count').textContent = response.data.mapped_count;
+                    document.getElementById('unmapped-count').textContent = response.data.unmapped_count;
+                    document.getElementById('export-btn').disabled = false;
+                    updateLogs(response.data.logs);
+                    await loadResults();
+                    showNotification('Processing completed!', 'success');
+                    // Add completion message to live logs
+                    addLiveLogEntry({
+                        timestamp: new Date().toLocaleTimeString(),
+                        level: 'INFO',
+                        message: '🎉 Processing completed! Check the Mapping Results tab for details.',
+                        type: 'info'
+                    });
+                } else {
+                    showNotification('Processing failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Error processing: ' + error.message, 'error');
+                addLiveLogEntry({
+                    timestamp: new Date().toLocaleTimeString(),
+                    level: 'ERROR',
+                    message: 'Processing failed: ' + error.message,
+                    type: 'error'
+                });
+            } finally {
+                setTimeout(() => {
+                    stopLiveLogStream();
+                }, 5000);
+            }
+        }
+
+        async function loadResults() {
+            try {
+                console.log('Loading results...');
+                const response = await axios.get('/api/results');
+                console.log('Results response:', response.data);
+                console.log('Mapped count:', response.data.mapped ? response.data.mapped.length : 'null/undefined');
+                console.log('Unmapped count:', response.data.unmapped ? response.data.unmapped.length : 'null/undefined');
+                if (!Array.isArray(response.data.mapped)) {
+                    console.warn('Mapped data is not an array:', response.data.mapped);
+                }
+                if (!Array.isArray(response.data.unmapped)) {
+                    console.warn('Unmapped data is not an array:', response.data.unmapped);
+                }
+                lastResults.mapped = response.data.mapped || [];
+                lastResults.unmapped = response.data.unmapped || [];
+                populateResultsTable(response.data.mapped || []);
+                populateUnmappedTable(response.data.unmapped || []);
+            } catch (error) {
+                console.error('Error loading results:', error);
+                showNotification('Error loading results: ' + error.message, 'error');
+            }
+        }
+
+        function populateResultsTable(results) {
+            const tbody = document.getElementById('results-table');
+            tbody.innerHTML = '';
+            if (!Array.isArray(results) || results.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="5" class="text-center text-gray-400 py-4">No mapped results found.</td>`;
+                tbody.appendChild(row);
+                return;
+            }
+            results.forEach((result, idx) => {
+                const confidence = Math.round(result.confidence * 10) / 10; // Round to 1 decimal place
+                // Prepare alternatives display
+                let alternativesText = '';
+                if (result.alternatives && result.alternatives.length > 1) {
+                    const otherAlternatives = result.alternatives
+                        .filter(alt => alt.name !== result.matched_name)
+                        .slice(0, 2)
+                        .map(alt => `${alt.name} (${Math.round(alt.score * 10) / 10}%)`)
+                        .join(', ');
+                    if (otherAlternatives) {
+                        alternativesText = `<div class="text-xs text-gray-500 mt-1">Alt: ${otherAlternatives}</div>`;
+                    }
+                }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
+                        ${idx + 1}
+                        <span class="ml-1 align-middle cursor-pointer" title="${result.product_name}" onclick="copyProductName('${result.product_name.replace(/'/g, "&#39;")}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="white"/>
+                                <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text>
+                            </svg>
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 whitespace-normal max-w-xs text-sm text-gray-900 break-words">
+                        <div>${result.original_ingredient}</div>
+                        ${alternativesText}
+                    </td>
+                    <td class="px-3 py-2 whitespace-normal max-w-xs text-sm text-gray-900 break-words">${result.matched_name}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${confidence >= 90 ? 'bg-green-100 text-green-800' : confidence >= 80 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
+                            ${confidence}%
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${result.match_type.includes('exact') ? 'bg-green-100 text-green-800' : result.match_type.includes('synonym') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                            ${result.match_type}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function populateUnmappedTable(unmapped) {
+            const tbody = document.getElementById('unmapped-table');
+            tbody.innerHTML = '';
+            if (!Array.isArray(unmapped) || unmapped.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="4" class="text-center text-gray-400 py-4">No unmapped ingredients found.</td>`;
+                tbody.appendChild(row);
+                return;
+            }
+            unmapped.forEach((item, idx) => {
+                const confidence = item.confidence ? Math.round(item.confidence * 10) / 10 : 0;
+                // Prepare alternatives display for unmapped items (these are the suggestions for manual adjustment)
+                let alternativesText = '';
+                if (item.alternatives && item.alternatives.length > 0) {
+                    const topAlternatives = item.alternatives
+                        .slice(0, 3)
+                        .map(alt => `${alt.name} (${Math.round(alt.score * 10) / 10}% via ${alt.scorer})`)
+                        .join('<br>• ');
+                    alternativesText = `<div class="text-xs text-blue-600 mt-1">💡 Consider:<br>• ${topAlternatives}</div>`;
+                }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
+                        ${idx + 1}
+                        <span class="ml-1 align-middle cursor-pointer" title="${item.product_name}" onclick="copyProductName('${item.product_name.replace(/'/g, "&#39;")}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="white"/>
+                                <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text>
+                            </svg>
+                        </span>
+                    </td>
+                    <td class="px-3 py-2 whitespace-normal max-w-xs text-sm text-gray-900 break-words">
+                        <div class="font-semibold truncate max-w-xs" title="${item.original_ingredient}">${item.original_ingredient}</div>
+                        <div class="text-xs text-gray-500 truncate max-w-xs">Normalized: ${item.normalized_ingredient}</div>
+                        ${item.matched_name ? `<div class="text-xs text-orange-600 truncate max-w-xs">Best match: ${item.matched_name} (${confidence}%)</div>` : ''}
+                        ${alternativesText}
+                    </td>
+                    <td class="px-3 py-2 whitespace-normal max-w-xs text-xs text-gray-500 break-words">${item.normalized_ingredient}</td>
+                    <td class="px-3 py-2 whitespace-nowrap text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 px-2 py-1 border border-blue-300 rounded hover:bg-blue-50 text-xs" onclick="openMappingModal('${item.original_ingredient}')">
+                            Map
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateLogs(logs) {
+            const container = document.getElementById('logs-container');
+            container.innerHTML = '';
+
+            logs.forEach(log => {
+                const logDiv = document.createElement('div');
+                logDiv.className = `p-3 rounded border log-${log.type}`;
+                let infoIcon = '';
+                if (log.product && log.product !== 'System' && log.product !== 'undefined') {
+                    infoIcon = `<span class="ml-2 align-middle cursor-pointer" title="Show product info" onclick="showProductInfoModal('${log.product.replace(/'/g, "&#39;")}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="white"/>
+                            <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">i</text>
+                        </svg>
+                    </span>`;
+                }
+                logDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-medium">${log.product || ''}${infoIcon}</p>
+                            <p class="text-sm">${log.message}</p>
+                        </div>
+                        <span class="text-xs opacity-75">${log.type}</span>
+                    </div>
+                `;
+                container.appendChild(logDiv);
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update tab links
+            document.querySelectorAll('.tab-link').forEach(link => {
+                if (link.dataset.tab === tabName) {
+                    link.className = link.className.replace('border-transparent text-gray-500', 'border-blue-500 text-blue-600');
+                } else {
+                    link.className = link.className.replace('border-blue-500 text-blue-600', 'border-transparent text-gray-500');
+                }
+            });
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Load results when switching to results tab
+            if (tabName === 'results') {
+                loadResults();
+            }
+            
+            // Start live log stream when switching to live logs tab
+            if (tabName === 'live-logs') {
+                if (!eventSource) {
+                    startLiveLogStream();
+                }
+            } else {
+                // Optionally stop stream when leaving live logs tab
+                // stopLiveLogStream();
+            }
+        }
+
+        function openMappingModal(ingredient) {
+            currentMappingIngredient = ingredient;
+            document.getElementById('modal-ingredient').textContent = ingredient;
+            document.getElementById('mapping-modal').classList.remove('hidden');
+            document.getElementById('mapping-modal').classList.add('flex');
+            document.getElementById('ingredient-search').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('mapping-modal').classList.add('hidden');
+            document.getElementById('mapping-modal').classList.remove('flex');
+            currentMappingIngredient = null;
+            selectedIngredientId = null;
+            document.getElementById('ingredient-search').value = '';
+            document.getElementById('search-results').innerHTML = '';
+            document.getElementById('search-results').classList.add('hidden');
+        }
+
+        async function searchIngredients() {
+            const query = document.getElementById('ingredient-search').value;
+            if (query.length < 2) {
+                document.getElementById('search-results').classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/ingredients/search?q=${encodeURIComponent(query)}`);
+                const results = response.data;
+                
+                const resultsDiv = document.getElementById('search-results');
+                resultsDiv.innerHTML = '';
+                
+                if (results.length > 0) {
+                    results.forEach(ingredient => {
+                        const div = document.createElement('div');
+                        div.className = 'p-2 hover:bg-blue-50 cursor-pointer border-b';
+                        div.textContent = ingredient.name;
+                        div.onclick = () => selectIngredient(ingredient.id, ingredient.name);
+                        resultsDiv.appendChild(div);
+                    });
+                    resultsDiv.classList.remove('hidden');
+                } else {
+                    resultsDiv.innerHTML = '<div class="p-2 text-gray-500">No matches found</div>';
+                    resultsDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+
+        function selectIngredient(id, name) {
+            selectedIngredientId = id;
+            document.getElementById('ingredient-search').value = name;
+            document.getElementById('search-results').classList.add('hidden');
+            document.getElementById('confirm-mapping').disabled = false;
+        }
+
+        async function confirmMapping() {
+            if (!currentMappingIngredient || !selectedIngredientId) return;
+
+            try {
+                const response = await axios.post('/api/manual-map', {
+                    original_ingredient: currentMappingIngredient,
+                    ingredient_id: selectedIngredientId
+                });
+
+                if (response.data.success) {
+                    showNotification('Ingredient mapped successfully!', 'success');
+                    await loadResults();
+                    closeModal();
+                } else {
+                    showNotification('Mapping failed: ' + response.data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error mapping ingredient: ' + error.message, 'error');
+            }
+        }
+
+        async function exportResults() {
+            showLoading('Exporting results...');
+            try {
+                const response = await axios.post('/api/export');
+                if (response.data.success) {
+                    const files = response.data.files;
+                    showNotification(`Export completed! Files: ${Object.values(files).join(', ')}`, 'success');
+                } else {
+                    showNotification('Export failed: ' + response.data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error exporting: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 5000);
+        }
+
+        function startLiveLogStream() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            eventSource = new EventSource('/api/logs');
+            
+            eventSource.onmessage = function(event) {
+                const logEntry = JSON.parse(event.data);
+                addLiveLogEntry(logEntry);
+            };
+
+            eventSource.onerror = function(event) {
+                console.error('EventSource failed:', event);
+                addLiveLogEntry({
+                    timestamp: new Date().toLocaleTimeString(),
+                    level: 'ERROR',
+                    message: 'Connection to log stream lost',
+                    type: 'error'
+                });
+            };
+        }
+
+        function stopLiveLogStream() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        }
+
+        function addLiveLogEntry(logEntry) {
+            const container = document.getElementById('live-logs-container');
+            const logDiv = document.createElement('div');
+            
+            // Color coding based on log level
+            let colorClass = 'text-green-400';
+            let icon = '📝';
+            
+            if (logEntry.level === 'ERROR') {
+                colorClass = 'text-red-400';
+                icon = '❌';
+            } else if (logEntry.level === 'WARNING') {
+                colorClass = 'text-yellow-400';
+                icon = '⚠️';
+            } else if (logEntry.level === 'INFO') {
+                colorClass = 'text-blue-400';
+                icon = '📋';
+            }
+            
+            logDiv.className = `${colorClass} mb-1`;
+            logDiv.innerHTML = `
+                <span class="text-gray-500">[${logEntry.timestamp}]</span> 
+                <span class="text-gray-400">${logEntry.level}</span> 
+                ${logEntry.message}
+            `;
+            
+            // Remove "waiting" message if it exists
+            const waitingMsg = container.querySelector('.text-gray-500');
+            if (waitingMsg && waitingMsg.textContent.includes('Waiting for')) {
+                waitingMsg.remove();
+            }
+            
+            container.appendChild(logDiv);
+            
+            // Auto-scroll to bottom if enabled
+            if (autoScroll) {
+                container.scrollTop = container.scrollHeight;
+            }
+            
+            // Limit log entries to prevent memory issues (keep last 1000)
+            const logEntries = container.children;
+            if (logEntries.length > 1000) {
+                container.removeChild(logEntries[0]);
+            }
+        }
+
+        function clearLiveLogs() {
+            const container = document.getElementById('live-logs-container');
+            container.innerHTML = '<div class="text-gray-500">Live logs cleared. Processing new logs...</div>';
+        }
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const button = document.getElementById('toggle-auto-scroll');
+            button.textContent = `Auto-scroll: ${autoScroll ? 'ON' : 'OFF'}`;
+            button.className = autoScroll 
+                ? 'px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded'
+                : 'px-3 py-1 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded';
+        }
+
+        function copyProductName(name) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(name).then(() => {
+                    showNotification('Product name copied!', 'success');
+                }, () => {
+                    showNotification('Failed to copy', 'error');
+                });
+            } else {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = name;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showNotification('Product name copied!', 'success');
+                } catch (err) {
+                    showNotification('Failed to copy', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        async function resetAll() {
+            if (!confirm('Are you sure you want to reset everything? This will clear all loaded data and results.')) return;
+            try {
+                const response = await axios.post('/api/reset');
+                if (response.data.success) {
+                    // Reset UI state
+                    document.getElementById('products-count').textContent = '0';
+                    document.getElementById('ingredients-count').textContent = '0';
+                    document.getElementById('mapped-count').textContent = '0';
+                    document.getElementById('unmapped-count').textContent = '0';
+                    document.getElementById('process-btn').disabled = true;
+                    document.getElementById('export-btn').disabled = true;
+                    // Clear tables and logs
+                    document.getElementById('results-table').innerHTML = '';
+                    document.getElementById('unmapped-table').innerHTML = '';
+                    document.getElementById('logs-container').innerHTML = '';
+                    document.getElementById('live-logs-container').innerHTML = '<div class="text-gray-500">Waiting for processing to start...</div>';
+                    showNotification('All data and results have been reset.', 'success');
+                } else {
+                    showNotification('Failed to reset: ' + response.data.error, 'error');
+                }
+            } catch (error) {
+                showNotification('Error resetting: ' + error.message, 'error');
+            }
+        }
+
+        function filterLogs() {
+            const search = document.getElementById('log-search-input').value.toLowerCase();
+            const allLogs = window.currentLogs || [];
+            const filtered = allLogs.filter(log => (log.product || '').toLowerCase().includes(search));
+            updateLogs(filtered);
+        }
+
+        // Patch updateLogs to store logs for filtering
+        const _updateLogs = updateLogs;
+        updateLogs = function(logs) {
+            window.currentLogs = logs;
+            _updateLogs(logs);
+        }
+
+        function showProductInfoModal(productName) {
+            // Find mapped/unmapped for this product
+            const mapped = lastResults.mapped.filter(item => item.product_name === productName);
+            const unmapped = lastResults.unmapped.filter(item => item.product_name === productName);
+            document.getElementById('product-info-title').textContent = `Product: ${productName}`;
+            const mappedList = document.getElementById('product-info-mapped');
+            const unmappedList = document.getElementById('product-info-unmapped');
+            mappedList.innerHTML = mapped.length ? mapped.map(m => `<li>${m.original_ingredient} → <span class="text-green-700 font-semibold">${m.matched_name}</span></li>`).join('') : '<li class="text-gray-400">None</li>';
+            unmappedList.innerHTML = unmapped.length ? unmapped.map(u => `<li>${u.original_ingredient}${u.matched_name ? ` (Best match: <span class='text-orange-600'>${u.matched_name}</span>)` : ''}</li>`).join('') : '<li class="text-gray-400">None</li>';
+            document.getElementById('product-info-modal').classList.remove('hidden');
+            document.getElementById('product-info-modal').classList.add('flex');
+        }
+
+        function closeProductInfoModal() {
+            document.getElementById('product-info-modal').classList.add('hidden');
+            document.getElementById('product-info-modal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html> 
