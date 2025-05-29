@@ -241,6 +241,11 @@
                 <div id="logs-tab" class="tab-content hidden">
                     <div class="mb-4 flex items-center">
                         <input id="log-search-input" type="text" placeholder="Search product..." class="border border-gray-300 rounded px-3 py-2 text-sm w-full max-w-xs mr-2" />
+                        <button id="refresh-logs-btn" class="ml-2 px-3 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded text-gray-700" title="Show all logs" type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.581M5.635 19.364A9 9 0 104.582 9m0 0H9m-4.418 0V4" />
+                            </svg>
+                        </button>
                         <span class="text-gray-400 text-xs">(Search by product name)</span>
                     </div>
                     <div class="space-y-3" id="logs-container">
@@ -437,6 +442,12 @@
             });
             document.getElementById('view-ingredients-details').addEventListener('click', function() {
                 showDataPreview(uploadedFiles.ingredients.filepath, 'Ingredients Database Preview');
+            });
+
+            // Refresh logs button
+            document.getElementById('refresh-logs-btn').addEventListener('click', function() {
+                document.getElementById('log-search-input').value = '';
+                filterLogs();
             });
         }
 
@@ -1146,15 +1157,28 @@
 
         function filterLogs() {
             const search = document.getElementById('log-search-input').value.toLowerCase();
-            const allLogs = window.currentLogs || [];
-            const filtered = allLogs.filter(log => (log.product || '').toLowerCase().includes(search));
-            updateLogs(filtered);
+            const allLogs = window.allLogs || [];
+            let filtered;
+            if (!search) {
+                filtered = allLogs;
+            } else {
+                filtered = allLogs.filter(log => (log.product || '').toLowerCase().includes(search) || (log.message || '').toLowerCase().includes(search));
+            }
+            window.currentLogs = filtered; // Update currentLogs to the filtered set
+            // Show empty state if no logs match
+            if (filtered.length === 0) {
+                const container = document.getElementById('logs-container');
+                container.innerHTML = '<div class="text-center text-gray-400 py-4">No logs found for this search.</div>';
+            } else {
+                _updateLogs(filtered);
+            }
         }
 
         // Patch updateLogs to store logs for filtering
         const _updateLogs = updateLogs;
         updateLogs = function(logs) {
-            window.currentLogs = logs;
+            window.allLogs = logs; // Store the full logs
+            window.currentLogs = logs; // Initially, currentLogs is the full set
             _updateLogs(logs);
         }
 
