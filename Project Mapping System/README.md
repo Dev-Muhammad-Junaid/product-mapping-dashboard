@@ -26,7 +26,7 @@ A local ingredient mapping system that automatically maps product ingredients to
 
 ```bash
 python3 -m venv ingredient_mapper_env
-source ingredient_mapper_env/bin/activate  # On Windows: ingredient_mapper_env\Scripts\activate
+source ingredient_mapper_env/bin/activate
 ```
 
 ### 2. Install Dependencies

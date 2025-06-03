@@ -1041,12 +1041,17 @@ def export_custom():
     """Export mapped results with only selected fields as CSV"""
     data = request.get_json()
     fields = data.get('fields', [])
+    filename = data.get('filename', None)
     mapped_df = pd.DataFrame(mapper.mapping_results)
     if not fields:
         return jsonify({'success': False, 'error': 'No fields selected'}), 400
     try:
         export_df = mapped_df[fields]
-        filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        if filename:
+            if not filename.endswith('.csv'):
+                filename += '.csv'
+        else:
+            filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         export_df.to_csv(filename, index=False)
         return send_file(filename, as_attachment=True)
     except Exception as e:

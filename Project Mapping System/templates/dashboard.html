@@ -70,6 +70,7 @@
                 <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
                     Reset All
                 </button>
+                <button id="custom-export-btn" class="ml-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition duration-200">Custom Export</button>
             </div>
 
             <!-- Settings -->
@@ -373,6 +374,27 @@
                 </div>
             </div>
         </div>
+
+        <!-- Add Custom Export Modal -->
+        <div id="custom-export-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Custom Export</h3>
+                <form id="custom-export-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Fields to Export:</label>
+                        <div id="custom-export-fields" class="space-y-2 max-h-48 overflow-y-auto border rounded p-2"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filename:</label>
+                        <input type="text" id="custom-export-filename" class="w-full border rounded px-3 py-2" value="custom_export.csv" required />
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancel-custom-export" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancel</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">Export</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -449,6 +471,11 @@
                 document.getElementById('log-search-input').value = '';
                 filterLogs();
             });
+
+            // Custom export event listeners
+            document.getElementById('custom-export-btn').addEventListener('click', openCustomExportModal);
+            document.getElementById('cancel-custom-export').addEventListener('click', closeCustomExportModal);
+            document.getElementById('custom-export-form').addEventListener('submit', submitCustomExport);
         }
 
         function updateConfidenceDisplay() {
@@ -1198,6 +1225,60 @@
         function closeProductInfoModal() {
             document.getElementById('product-info-modal').classList.add('hidden');
             document.getElementById('product-info-modal').classList.remove('flex');
+        }
+
+        async function openCustomExportModal() {
+            showLoading('Loading available fields...');
+            try {
+                const response = await axios.get('/api/preview-mapped');
+                const fields = response.data.fields || [];
+                const fieldsContainer = document.getElementById('custom-export-fields');
+                fieldsContainer.innerHTML = '';
+                fields.forEach(field => {
+                    const id = `field-${field}`;
+                    const div = document.createElement('div');
+                    div.innerHTML = `<label><input type="checkbox" class="custom-export-field" value="${field}" checked> ${field}</label>`;
+                    fieldsContainer.appendChild(div);
+                });
+                document.getElementById('custom-export-modal').classList.remove('hidden');
+                document.getElementById('custom-export-modal').classList.add('flex');
+            } catch (error) {
+                showNotification('Error loading fields: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function closeCustomExportModal() {
+            document.getElementById('custom-export-modal').classList.add('hidden');
+            document.getElementById('custom-export-modal').classList.remove('flex');
+        }
+
+        async function submitCustomExport(e) {
+            e.preventDefault();
+            const checked = Array.from(document.querySelectorAll('.custom-export-field:checked')).map(cb => cb.value);
+            const filename = document.getElementById('custom-export-filename').value || 'custom_export.csv';
+            if (checked.length === 0) {
+                showNotification('Please select at least one field.', 'error');
+                return;
+            }
+            showLoading('Exporting custom CSV...');
+            try {
+                const response = await axios.post('/api/export-custom', { fields: checked }, { responseType: 'blob' });
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                closeCustomExportModal();
+                showNotification('Custom export completed!', 'success');
+            } catch (error) {
+                showNotification('Custom export failed: ' + (error.response?.data?.error || error.message), 'error');
+            } finally {
+                hideLoading();
+            }
         }
     </script>
 </body>
