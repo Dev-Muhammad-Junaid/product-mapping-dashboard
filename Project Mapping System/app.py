@@ -476,9 +476,10 @@ class IngredientMapper:
     def process_products(self):
         """Process all products and map ingredients"""
         if self.products_df is None or self.ingredients_db is None:
-            app.logger.error("❌ No data loaded. Please load CSV files first.")
+            app.logger.error("[IngredientMapper] No data loaded. Please load CSV files first.")
             return
         
+        app.logger.info(f"[IngredientMapper] Starting mapping for {len(self.products_df)} products and {len(self.ingredients_db)} ingredients in DB.")
         self.mapping_results = []
         self.unmapped_ingredients = []
         self.processing_logs = []
@@ -491,7 +492,7 @@ class IngredientMapper:
             product_company = self.safe_get_str(row.get('product_company', ''))
             ingredient_column = 'ingredients'
             
-            app.logger.info(f"📦 Processing product {idx+1}/{total_products}: {product_name}")
+            app.logger.info(f"[IngredientMapper] Processing product {idx+1}/{total_products}: {product_name}")
             
             if ingredient_column not in row or pd.isna(row[ingredient_column]):
                 app.logger.warning(f"⚠️ No ingredients found for {product_name}")
@@ -600,6 +601,7 @@ class IngredientMapper:
         overall_total = total_mapped + total_unmapped
         overall_success = (total_mapped / overall_total * 100) if overall_total > 0 else 0
         
+        app.logger.info(f"[IngredientMapper] Finished mapping. Total mapped: {total_mapped}, Total unmapped: {total_unmapped}")
         app.logger.info(f"🎉 PROCESSING COMPLETE!")
         app.logger.info(f"📈 FINAL RESULTS: {total_mapped} mapped, {total_unmapped} unmapped ({overall_success:.1f}% overall success rate)")
         app.logger.info(f"🏁 Processed {total_products} products with {overall_total} total ingredients")
@@ -708,49 +710,30 @@ def dashboard():
 
 @app.route('/api/load-data', methods=['POST'])
 def load_data():
-    """Load data from CSV files (uploaded or default)"""
-    products_file = None
-    ingredients_file = None
-    
-    # Check if this is a JSON request with file paths
-    if request.is_json:
-        data = request.get_json()
-        products_file = data.get('products_file')
-        ingredients_file = data.get('ingredients_file')
-    else:
-        # Check if files were uploaded in this request
-        if 'products_file' in request.files:
-            file = request.files['products_file']
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"products_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}")
-                file.save(filepath)
-                products_file = filepath
-        
-        if 'ingredients_file' in request.files:
-            file = request.files['ingredients_file']
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"ingredients_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}")
-                file.save(filepath)
-                ingredients_file = filepath
-
-    success = mapper.load_data(products_file, ingredients_file)
-    return jsonify({
-        'success': success,
-        'products_count': len(mapper.products_df) if mapper.products_df is not None else 0,
-        'ingredients_count': len(mapper.ingredients_db) if mapper.ingredients_db is not None else 0,
-        'logs': mapper.processing_logs[-10:]  # Last 10 logs
-    })
+    """Load the most recently uploaded products and ingredients files into the backend."""
+    try:
+        if not mapper.products_file_path or not mapper.ingredients_file_path:
+            return jsonify({'success': False, 'error': 'Files not uploaded yet.'}), 400
+        loaded = mapper.load_data(mapper.products_file_path, mapper.ingredients_file_path)
+        if loaded:
+            return jsonify({'success': True, 'products_count': len(mapper.products_df), 'ingredients_count': len(mapper.ingredients_db), 'logs': mapper.processing_logs[-10:]})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to load data.'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/process', methods=['POST'])
 def process_ingredients():
     """Process ingredients with fuzzy matching"""
     data = request.get_json()
+    app.logger.info(f"[API] /api/process called with data: {data}")
     mapper.confidence_threshold = data.get('confidence_threshold', 85)
-    
+    app.logger.info(f"[API] Set confidence_threshold to {mapper.confidence_threshold}")
+    if mapper.products_df is None or mapper.ingredients_db is None:
+        app.logger.error("[API] No data loaded. Cannot process ingredients.")
+        return jsonify({'success': False, 'error': 'No data loaded.'}), 400
     mapper.process_products()
-    
+    app.logger.info(f"[API] Mapping complete. mapped_count={len(mapper.mapping_results)}, unmapped_count={len(mapper.unmapped_ingredients)}")
     return jsonify({
         'success': True,
         'mapped_count': len(mapper.mapping_results),
@@ -824,37 +807,55 @@ def get_results():
 
 @app.route('/api/manual-map', methods=['POST'])
 def manual_map():
-    """Manually map an unmapped ingredient"""
+    """Manually map an unmapped ingredient or batch of ingredients"""
     data = request.get_json()
     original_ingredient = data['original_ingredient']
     ingredient_id = data['ingredient_id']
-    
+    note = data.get('note', '')
     # Find the ingredient in database
     matched_ingredient = mapper.ingredients_db[
         mapper.ingredients_db['ingredient_id'] == ingredient_id
     ]
-    
     if matched_ingredient.empty:
         return jsonify({'success': False, 'error': 'Ingredient ID not found'})
-    
     matched_ingredient = matched_ingredient.iloc[0]
-    
-    # Update unmapped list
+    # Support batch mapping
+    if isinstance(original_ingredient, list):
+        count = 0
+        for orig in original_ingredient:
+            for i, item in enumerate(mapper.unmapped_ingredients):
+                if item['original_ingredient'] == orig:
+                    mapping_entry = item.copy()
+                    mapping_entry.update({
+                        'ingredient_id': ingredient_id,
+                        'matched_name': matched_ingredient['name'],
+                        'status': 'mapped',
+                        'confidence': 100,
+                        'match_type': 'manual',
+                        'mapping_source': 'manual',
+                        'note': note
+                    })
+                    mapper.mapping_results.append(mapping_entry)
+                    mapper.unmapped_ingredients.pop(i)
+                    count += 1
+                    break
+        return jsonify({'success': True, 'mapped_count': count})
+    # Single mapping
     for i, item in enumerate(mapper.unmapped_ingredients):
         if item['original_ingredient'] == original_ingredient:
-            # Move to mapped
             mapping_entry = item.copy()
             mapping_entry.update({
                 'ingredient_id': ingredient_id,
                 'matched_name': matched_ingredient['name'],
                 'status': 'mapped',
                 'confidence': 100,
-                'match_type': 'manual'
+                'match_type': 'manual',
+                'mapping_source': 'manual',
+                'note': note
             })
             mapper.mapping_results.append(mapping_entry)
             mapper.unmapped_ingredients.pop(i)
             break
-    
     return jsonify({'success': True})
 
 @app.route('/api/add-synonym', methods=['POST'])
@@ -875,25 +876,31 @@ def add_synonym():
 
 @app.route('/api/export', methods=['POST'])
 def export_results():
-    """Export mapping results to CSV"""
+    """Export mapping results to CSV, including product mapping status."""
     try:
-        # Create final mapped products DataFrame
         mapped_df = pd.DataFrame(mapper.mapping_results)
         unmapped_df = pd.DataFrame(mapper.unmapped_ingredients)
-        
-        # Export mapped results
+        # Ensure mapping_source and note columns exist
+        if 'mapping_source' not in mapped_df.columns:
+            mapped_df['mapping_source'] = mapped_df.get('match_type', '').apply(lambda x: 'manual' if x == 'manual' else 'auto')
+        if 'note' not in mapped_df.columns:
+            mapped_df['note'] = ''
+        # Add product-level mapping status
+        mapped_df['fully_mapped'] = False
+        if not mapped_df.empty:
+            prod_status = {}
+            for pname in mapped_df['product_name'].unique():
+                total = len(mapped_df[mapped_df['product_name'] == pname]) + len(unmapped_df[unmapped_df['product_name'] == pname])
+                unmapped = len(unmapped_df[unmapped_df['product_name'] == pname])
+                prod_status[pname] = (unmapped == 0 and total > 0)
+            mapped_df['fully_mapped'] = mapped_df['product_name'].map(prod_status)
         mapped_filename = f'mapped_ingredients_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         mapped_df.to_csv(mapped_filename, index=False)
-        
-        # Export unmapped for review
         unmapped_filename = f'unmapped_ingredients_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         unmapped_df.to_csv(unmapped_filename, index=False)
-        
-        # Export processing logs
         logs_filename = f'processing_logs_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         logs_df = pd.DataFrame(mapper.processing_logs)
         logs_df.to_csv(logs_filename, index=False)
-        
         return jsonify({
             'success': True,
             'files': {
@@ -954,32 +961,30 @@ def upload_file():
     """Upload and validate a CSV file"""
     if 'file' not in request.files:
         return jsonify({'success': False, 'error': 'No file provided'})
-    
     file = request.files['file']
     file_type = request.form.get('type')  # 'products' or 'ingredients'
-    
     if file.filename == '':
         return jsonify({'success': False, 'error': 'No file selected'})
-    
     if not allowed_file(file.filename):
         return jsonify({'success': False, 'error': 'Only CSV files are allowed'})
-    
     try:
         # Read file into pandas DataFrame for validation
         df = pd.read_csv(file)
-        
         # Validate structure
         valid, result = validate_csv_structure(df, file_type)
         if not valid:
             return jsonify({'success': False, 'error': result})
-        
         # Save file temporarily
         filename = secure_filename(file.filename)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{file_type}_{timestamp}_{filename}")
         file.seek(0)  # Reset file pointer
         file.save(filepath)
-        
+        # Set the file path on the mapper for later loading
+        if file_type == 'products':
+            mapper.products_file_path = filepath
+        elif file_type == 'ingredients':
+            mapper.ingredients_file_path = filepath
         # Return preview data
         preview_data = {
             'filename': file.filename,
@@ -989,9 +994,7 @@ def upload_file():
             'column_mapping': result,
             'sample_data': df.head(5).to_dict('records')
         }
-        
         return jsonify({'success': True, 'preview': preview_data})
-        
     except Exception as e:
         return jsonify({'success': False, 'error': f'Error processing file: {str(e)}'})
 
@@ -1038,11 +1041,26 @@ def preview_mapped():
 
 @app.route('/api/export-custom', methods=['POST'])
 def export_custom():
-    """Export mapped results with only selected fields as CSV"""
+    """Export mapped results with only selected fields as CSV, including product mapping status."""
     data = request.get_json()
     fields = data.get('fields', [])
     filename = data.get('filename', None)
     mapped_df = pd.DataFrame(mapper.mapping_results)
+    unmapped_df = pd.DataFrame(mapper.unmapped_ingredients)
+    # Ensure mapping_source and note columns exist
+    if 'mapping_source' not in mapped_df.columns:
+        mapped_df['mapping_source'] = mapped_df.get('match_type', '').apply(lambda x: 'manual' if x == 'manual' else 'auto')
+    if 'note' not in mapped_df.columns:
+        mapped_df['note'] = ''
+    # Add product-level mapping status
+    mapped_df['fully_mapped'] = False
+    if not mapped_df.empty:
+        prod_status = {}
+        for pname in mapped_df['product_name'].unique():
+            total = len(mapped_df[mapped_df['product_name'] == pname]) + len(unmapped_df[unmapped_df['product_name'] == pname])
+            unmapped = len(unmapped_df[unmapped_df['product_name'] == pname])
+            prod_status[pname] = (unmapped == 0 and total > 0)
+        mapped_df['fully_mapped'] = mapped_df['product_name'].map(prod_status)
     if not fields:
         return jsonify({'success': False, 'error': 'No fields selected'}), 400
     try:
@@ -1057,6 +1075,87 @@ def export_custom():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+def to_python_type(val):
+    if isinstance(val, dict):
+        return {k: to_python_type(v) for k, v in val.items()}
+    if isinstance(val, list):
+        return [to_python_type(v) for v in val]
+    if isinstance(val, (np.integer,)):
+        return int(val)
+    if isinstance(val, (np.floating,)):
+        return float(val)
+    if isinstance(val, (np.ndarray,)):
+        return val.tolist()
+    return val
+
+@app.route('/api/products-mapping-status', methods=['GET'])
+def products_mapping_status():
+    """Return mapping status for all products, including mapped/unmapped ingredients and summary info."""
+    products = {}
+    for row in mapper.mapping_results:
+        pname = row.get('product_name')
+        if pname not in products:
+            products[pname] = {'product_name': pname, 'ingredients': [], 'mapped': [], 'unmapped': []}
+        row_copy = row.copy()
+        row_copy['is_mapped'] = True
+        products[pname]['ingredients'].append(row_copy)
+        products[pname]['mapped'].append(row_copy)
+    for row in mapper.unmapped_ingredients:
+        pname = row.get('product_name')
+        if pname not in products:
+            products[pname] = {'product_name': pname, 'ingredients': [], 'mapped': [], 'unmapped': []}
+        row_copy = row.copy()
+        row_copy['is_mapped'] = False
+        products[pname]['ingredients'].append(row_copy)
+        products[pname]['unmapped'].append(row_copy)
+    result = []
+    for pname, info in products.items():
+        total = int(len(info['ingredients']))
+        mapped = int(len(info['mapped']))
+        unmapped = int(len(info['unmapped']))
+        fully_mapped = unmapped == 0 and total > 0
+        info['total_ingredients'] = total
+        info['mapped_count'] = mapped
+        info['unmapped_count'] = unmapped
+        info['fully_mapped'] = fully_mapped
+        result.append(info)
+    # Robust conversion for all nested fields
+    result = to_python_type(result)
+    return jsonify({'products': result})
+
+@app.route('/api/add-ingredient', methods=['POST'])
+def add_ingredient():
+    """Add a new ingredient to a product as unmapped."""
+    data = request.get_json()
+    product_name = data.get('product_name')
+    ingredient_name = data.get('ingredient_name')
+    if not product_name or not ingredient_name:
+        return jsonify({'success': False, 'error': 'Missing product or ingredient name'}), 400
+    # Add to unmapped_ingredients
+    new_row = {
+        'product_name': product_name,
+        'original_ingredient': ingredient_name,
+        'normalized_ingredient': ingredient_name.lower(),
+        'matched_name': '',
+        'confidence': 0,
+        'match_type': '',
+        'mapping_source': '',
+        'note': '',
+    }
+    mapper.unmapped_ingredients.append(new_row)
+    return jsonify({'success': True, 'added': new_row})
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    import sys
+    port = 5000
+    # Check for --port argument
+    for i, arg in enumerate(sys.argv):
+        if arg in ('--port', '-p') and i + 1 < len(sys.argv):
+            try:
+                port = int(sys.argv[i + 1])
+            except Exception:
+                pass
+    # Allow PORT env var override
+    import os
+    port = int(os.environ.get('PORT', port))
     app.run(debug=False, host='0.0.0.0', port=port) 
