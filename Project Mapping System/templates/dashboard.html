@@ -26,24 +26,37 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Top bar with Demo Mode and Version (move above header) -->
-        <div class="flex justify-between items-center mb-4">
-            <div></div>
-            <div class="flex items-center space-x-4">
-                <button id="demo-mode-btn" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-4 py-2 rounded shadow transition duration-200">Demo Mode</button>
-                <span id="version-badge" class="bg-gray-800 text-white text-xs font-semibold px-3 py-1 rounded">v1.0.0</span>
-            </div>
-        </div>
+    <!-- Changelog Sidebar (collapsible) -->
+    <button id="show-changelog-btn" class="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-2 rounded shadow-lg hidden">Show Changelog</button>
+    <div id="changelog-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white border-l border-gray-200 shadow-lg z-40 flex flex-col p-6 overflow-y-auto" style="min-width:320px;">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-blue-800">Changelog</h2>
+        <button id="hide-changelog-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+      </div>
+      <ul class="list-disc list-inside text-gray-700 mb-6 text-sm" id="changelog-list">
+        <li data-date="2024-06-05T10:00:00Z">Final export CSV preview and copy option added</li>
+        <li data-date="2024-06-05T09:00:00Z">Ingredient status icons (green check/red cross) in product table</li>
+        <li data-date="2024-06-05T08:00:00Z">UI auto-refreshes after mapping/note save</li>
+        <li data-date="2024-06-05T07:00:00Z">Demo Mode removed</li>
+        <li data-date="2024-06-05T06:00:00Z">Best match/alternatives and mapping improvements</li>
+        <li data-date="2024-06-04T12:00:00Z">Product-centric expandable mapping UI</li>
+        <li data-date="2024-06-03T12:00:00Z">Custom CSV export, pagination, batch mapping</li>
+      </ul>
+    </div>
+    <!-- End Changelog Sidebar -->
 
+    <!-- Main content wrapper with right margin for sidebar -->
+    <div class="mr-80">
+    <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">Ingredient Mapping System</h1>
             <p class="text-gray-600">Automatically map product ingredients to standardized database entries using fuzzy matching</p>
         </div>
 
-        <!-- Status Cards with Badges -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Enhanced Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- File Upload Stats -->
             <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
                 <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Products Loaded</h3>
                 <p class="text-2xl font-bold text-blue-600" id="products-count">0</p>
@@ -54,14 +67,20 @@
                 <p class="text-2xl font-bold text-green-600" id="ingredients-count">0</p>
                 <span id="ingredients-status" class="mt-2 text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">Not uploaded</span>
             </div>
+            
+            <!-- Product-Level Progress -->
             <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
-                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Mapped</h3>
-                <p class="text-2xl font-bold text-green-600" id="mapped-count">0</p>
-                <span id="process-status" class="mt-2 text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">Not processed</span>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
-                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Unmapped</h3>
-                <p class="text-2xl font-bold text-red-600" id="unmapped-count">0</p>
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Products Complete</h3>
+                <p class="text-2xl font-bold text-green-600" id="products-complete-count">0</p>
+                <div class="text-center mt-2">
+                    <span class="text-xs text-gray-500">out of </span>
+                    <span class="text-xs font-medium text-gray-700" id="products-total-count">0</span>
+                    <span class="text-xs text-gray-500"> total</span>
+                </div>
+                <div class="text-center mt-1">
+                    <span class="text-sm font-medium text-green-600" id="products-completion-percentage">0%</span>
+                    <span class="text-xs text-gray-500"> completed</span>
+                </div>
             </div>
         </div>
 
@@ -105,6 +124,9 @@
                     </a>
                     <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="unmapped">
                         Unmapped Ingredients
+                    </a>
+                    <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="export-preview">
+                        Export Preview
                     </a>
                     <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="live-logs">
                         Live Processing
@@ -205,8 +227,27 @@
                             <option value="none">None Mapped</option>
                         </select>
                     </div>
-                    <div class="mb-2">
-                        <span id="product-unmapped-progress" class="text-sm font-medium text-blue-700"></span>
+                    <div class="mb-4 bg-gray-50 rounded-lg p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-600" id="product-progress-completed">0</div>
+                                <div class="text-sm text-gray-600">Products Completed</div>
+                                <div class="text-xs text-gray-500" id="product-progress-percentage">0% of total</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-orange-600" id="product-progress-partial">0</div>
+                                <div class="text-sm text-gray-600">Partially Mapped</div>
+                                <div class="text-xs text-gray-500" id="product-progress-partial-percentage">0% of total</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-red-600" id="product-progress-unmapped-total">0</div>
+                                <div class="text-sm text-gray-600">Total Unmapped Ingredients</div>
+                                <div class="text-xs text-gray-500">Across all products</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <span id="product-unmapped-progress" class="text-sm font-medium text-blue-700"></span>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -222,6 +263,7 @@
                                 <!-- Product rows will be populated here -->
                             </tbody>
                         </table>
+                        <div id="product-unmapped-pagination" class="flex justify-between items-center mt-4"></div>
                     </div>
                 </div>
 
@@ -261,6 +303,18 @@
                         <!-- Logs will be populated here -->
                     </div>
                 </div>
+
+                <!-- Export Preview Tab -->
+                <div id="export-preview-tab" class="tab-content hidden">
+                  <div class="mb-4 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Final Export Preview</h3>
+                    <button id="copy-export-csv-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">Copy CSV</button>
+                  </div>
+                  <div class="mb-4">
+                    <textarea id="export-preview-textarea" class="w-full h-96 p-4 rounded border border-gray-300 bg-gray-50 font-mono text-sm resize-none" readonly spellcheck="false" style="min-height: 350px;"></textarea>
+                  </div>
+                </div>
+                <!-- End Export Preview Tab -->
             </div>
         </div>
 
@@ -287,8 +341,13 @@
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Comment/Note (optional):</label>
-                    <textarea id="mapping-note" class="w-full border border-gray-300 rounded-md px-3 py-2" rows="2" placeholder="Add a note about this mapping..."></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Label (optional):</label>
+                    <select id="mapping-label" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value=""></option>
+                        <option value="New Ingredient">New Ingredient</option>
+                        <option value="User Mapped">User Mapped</option>
+                        <option value="Incorrect Format">Incorrect Format</option>
+                    </select>
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button id="cancel-mapping" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancel</button>
@@ -406,6 +465,8 @@
             </div>
         </div>
     </div>
+    </div>
+    <!-- End main content wrapper -->
 
     <script>
         // Global state
@@ -572,6 +633,8 @@
                     uploadedFiles[fileType] = response.data.preview;
                     showFilePreview(fileType, response.data.preview);
                     showNotification(`${fileType} file uploaded successfully!`, 'success');
+                    // Add changelog entry
+                    addChangelogEntry(`Uploaded ${fileType} file: ${response.data.preview.filename} (${response.data.preview.rows.toLocaleString()} rows)`, 'upload');
                     if (fileType === 'products') productsUploaded = true;
                     if (fileType === 'ingredients') ingredientsUploaded = true;
                     setStatusBadge(fileType + '-status', 'Uploaded', 'success');
@@ -584,7 +647,15 @@
                             if (loadResp.data.success) {
                                 showNotification('Data loaded into backend!', 'success');
                                 setStatusBadge('process-status', 'Ready to process', 'success');
+                                // Add changelog entry
+                                addChangelogEntry('Data files loaded and ready for processing', 'system');
                                 setProcessButtonState();
+                                if (response.data.products_count !== undefined) {
+                                    document.getElementById('products-count').textContent = response.data.products_count;
+                                }
+                                if (response.data.ingredients_count !== undefined) {
+                                    document.getElementById('ingredients-count').textContent = response.data.ingredients_count;
+                                }
                             } else {
                                 showNotification('Failed to load data: ' + loadResp.data.error, 'error');
                                 setStatusBadge('process-status', 'Error: ' + loadResp.data.error, 'error');
@@ -776,6 +847,8 @@
                     await loadResults();
                     showNotification('Processing completed!', 'success');
                     setStatusBadge('process-status', 'Processed', 'success');
+                    // Add changelog entry
+                    addChangelogEntry(`Processing completed: ${response.data.mapped_count} mapped, ${response.data.unmapped_count} unmapped`, 'processing');
                     hasProcessed = true;
                 } else {
                     showNotification('Processing failed', 'error');
@@ -1011,6 +1084,7 @@
         }
 
         function switchTab(tabName) {
+            console.log('[DEBUG] Switching to tab:', tabName);
             // Update tab links
             document.querySelectorAll('.tab-link').forEach(link => {
                 if (link.dataset.tab === tabName) {
@@ -1041,18 +1115,61 @@
                 // stopLiveLogStream();
             }
             if (tabName === 'unmapped') {
+                console.log('[DEBUG] Unmapped tab activated, calling loadProductUnmapped');
                 loadProductUnmapped();
                 return; // Prevent old unmapped logic from running
             }
+            if (tabName === 'export-preview') {
+                updateExportPreview();
+            }
         }
 
-        function openMappingModal(ingredient, productName = null) {
+        async function openMappingModal(ingredient, productName = null, prefill = null) {
             currentMappingIngredient = ingredient;
             selectedIngredientId = null;
             document.getElementById('modal-ingredient').textContent = ingredient + (productName ? ` (Product: ${productName})` : '');
             document.getElementById('mapping-modal').classList.remove('hidden');
             document.getElementById('mapping-modal').classList.add('flex');
+            document.getElementById('ingredient-search').value = prefill || '';
             document.getElementById('ingredient-search').focus();
+            document.getElementById('mapping-label').value = '';
+            if (prefill && ['New Ingredient','User Mapped','Incorrect Format'].includes(prefill)) {
+                document.getElementById('mapping-label').value = prefill;
+            }
+            
+            // If prefill is provided and it's not a label value, automatically search and select best match
+            if (prefill && !['New Ingredient','User Mapped','Incorrect Format'].includes(prefill)) {
+                try {
+                    const response = await axios.get(`/api/ingredients/search?q=${encodeURIComponent(prefill)}`);
+                    const results = response.data;
+                    const resultsDiv = document.getElementById('search-results');
+                    resultsDiv.innerHTML = '';
+                    
+                    if (results.length > 0) {
+                        // Populate search results
+                        results.forEach(ingredient => {
+                            const div = document.createElement('div');
+                            div.className = 'p-2 hover:bg-blue-50 cursor-pointer border-b';
+                            const regex = new RegExp(`(${prefill})`, 'gi');
+                            div.innerHTML = ingredient.name.replace(regex, '<span class="bg-yellow-200">$1</span>');
+                            div.onclick = () => selectIngredient(ingredient.id, ingredient.name);
+                            resultsDiv.appendChild(div);
+                        });
+                        resultsDiv.classList.remove('hidden');
+                        
+                        // Auto-select the best match (first result)
+                        const bestMatch = results[0];
+                        if (bestMatch) {
+                            selectIngredient(bestMatch.id, bestMatch.name);
+                        }
+                    } else {
+                        resultsDiv.innerHTML = '<div class="p-2 text-gray-500">No matches found</div>';
+                        resultsDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Auto-search error:', error);
+                }
+            }
         }
 
         function closeModal() {
@@ -1104,39 +1221,48 @@
         }
 
         async function confirmMapping() {
-            const note = document.getElementById('mapping-note').value;
+            const label = document.getElementById('mapping-label').value;
             if (window.batchMappingIngredients && window.batchMappingIngredients.length > 0) {
-                // Batch mapping
                 try {
                     const response = await axios.post('/api/manual-map', {
                         original_ingredient: window.batchMappingIngredients,
                         ingredient_id: selectedIngredientId,
-                        note: note
+                        note: label
                     });
-                    if (response.data.success) {
-                        showNotification('Batch mapping completed!', 'success');
-                        await loadResults();
-                        closeModal();
-                        window.batchMappingIngredients = null;
-                    } else {
-                        showNotification('Batch mapping failed: ' + response.data.error, 'error');
-                    }
+                                    if (response.data.success) {
+                    showNotification('Batch mapping completed!', 'success');
+                    // Add changelog entry
+                    addChangelogEntry(`Batch mapped ${window.batchMappingIngredients.length} ingredients`, 'batch-mapping');
+                    await loadResults();
+                    closeModal();
+                    window.batchMappingIngredients = null;
+                } else {
+                    showNotification('Batch mapping failed: ' + response.data.error, 'error');
+                }
                 } catch (error) {
                     showNotification('Error in batch mapping: ' + error.message, 'error');
                 }
                 return;
             }
-            // Single mapping
             if (!currentMappingIngredient || !selectedIngredientId) return;
             try {
                 const response = await axios.post('/api/manual-map', {
                     original_ingredient: currentMappingIngredient,
                     ingredient_id: selectedIngredientId,
-                    note: note
+                    note: label
                 });
                 if (response.data.success) {
                     showNotification('Ingredient mapped successfully!', 'success');
-                    await loadResults();
+                    // Add changelog entry
+                    const productName = document.getElementById('modal-ingredient').textContent.split(' (Product: ')[1]?.replace(')','');
+                    addChangelogEntry(`Mapped ingredient: ${currentMappingIngredient}${productName ? ` in ${productName}` : ''}`, 'mapping');
+                    // Refresh only the relevant product row and export preview
+                    if (window.refreshExpandedProductRow) {
+                        window.refreshExpandedProductRow(productName);
+                    } else {
+                        populateProductUnmappedTable();
+                    }
+                    updateExportPreview();
                     closeModal();
                 } else {
                     showNotification('Mapping failed: ' + response.data.error, 'error');
@@ -1153,6 +1279,8 @@
                 if (response.data.success) {
                     const files = response.data.files;
                     showNotification(`Export completed! Files: ${Object.values(files).join(', ')}`, 'success');
+                    // Add changelog entry
+                    addChangelogEntry(`Exported results to CSV files`, 'export');
                 } else {
                     showNotification('Export failed: ' + response.data.error, 'error');
                 }
@@ -1301,8 +1429,10 @@
                 if (response.data.success) {
                     document.getElementById('products-count').textContent = '0';
                     document.getElementById('ingredients-count').textContent = '0';
-                    document.getElementById('mapped-count').textContent = '0';
-                    document.getElementById('unmapped-count').textContent = '0';
+                    // Clear enhanced dashboard progress
+                    document.getElementById('products-complete-count').textContent = '0';
+                    document.getElementById('products-total-count').textContent = '0';
+                    document.getElementById('products-completion-percentage').textContent = '0%';
                     document.getElementById('process-btn').disabled = true;
                     document.getElementById('export-btn').disabled = true;
                     productsUploaded = false;
@@ -1321,7 +1451,20 @@
                     if (productUnmappedTable) productUnmappedTable.innerHTML = '';
                     const productUnmappedProgress = document.getElementById('product-unmapped-progress');
                     if (productUnmappedProgress) productUnmappedProgress.textContent = '';
+                    // Clear product progress elements
+                    const progressCompleted = document.getElementById('product-progress-completed');
+                    if (progressCompleted) progressCompleted.textContent = '0';
+                    const progressPartial = document.getElementById('product-progress-partial');
+                    if (progressPartial) progressPartial.textContent = '0';
+                    const progressUnmappedTotal = document.getElementById('product-progress-unmapped-total');
+                    if (progressUnmappedTotal) progressUnmappedTotal.textContent = '0';
+                    const progressPercentage = document.getElementById('product-progress-percentage');
+                    if (progressPercentage) progressPercentage.textContent = '0% of total';
+                    const progressPartialPercentage = document.getElementById('product-progress-partial-percentage');
+                    if (progressPartialPercentage) progressPartialPercentage.textContent = '0% of total';
                     showNotification('All data and results have been reset.', 'success');
+                    // Add changelog entry
+                    addChangelogEntry('System reset: All data and results cleared', 'system');
                 } else {
                     showNotification('Failed to reset: ' + response.data.error, 'error');
                 }
@@ -1376,25 +1519,20 @@
         }
 
         async function openCustomExportModal() {
-            showLoading('Loading available fields...');
-            try {
-                const response = await axios.get('/api/preview-mapped');
-                const fields = response.data.fields || [];
-                const fieldsContainer = document.getElementById('custom-export-fields');
-                fieldsContainer.innerHTML = '';
-                fields.forEach(field => {
-                    const id = `field-${field}`;
-                    const div = document.createElement('div');
-                    div.innerHTML = `<label><input type="checkbox" class="custom-export-field" value="${field}" checked> ${field}</label>`;
-                    fieldsContainer.appendChild(div);
-                });
-                document.getElementById('custom-export-modal').classList.remove('hidden');
-                document.getElementById('custom-export-modal').classList.add('flex');
-            } catch (error) {
-                showNotification('Error loading fields: ' + error.message, 'error');
-            } finally {
-                hideLoading();
-            }
+            document.getElementById('custom-export-modal').classList.remove('hidden');
+            document.getElementById('custom-export-modal').classList.add('flex');
+            // Always show field checkboxes and filename input
+            const fieldsContainer = document.getElementById('custom-export-fields');
+            fieldsContainer.innerHTML = '';
+            // Assume lastResults.mapped[0] has all possible fields
+            const sample = lastResults.mapped[0] || {};
+            Object.keys(sample).forEach(field => {
+                const label = document.createElement('label');
+                label.className = 'block mb-2';
+                label.innerHTML = `<input type='checkbox' name='fields' value='${field}' checked class='mr-2 custom-export-field'>${field}`;
+                fieldsContainer.appendChild(label);
+            });
+            document.getElementById('custom-export-filename').value = 'custom_export.csv';
         }
 
         function closeCustomExportModal() {
@@ -1422,6 +1560,8 @@
                 link.remove();
                 closeCustomExportModal();
                 showNotification('Custom export completed!', 'success');
+                // Add changelog entry
+                addChangelogEntry(`Custom export completed with ${checked.length} fields`, 'export');
             } catch (error) {
                 showNotification('Custom export failed: ' + (error.response?.data?.error || error.message), 'error');
             } finally {
@@ -1449,9 +1589,13 @@
             showLoading('Loading product mapping status...');
             try {
                 const response = await axios.get('/api/products-mapping-status');
+                console.log('[DEBUG] /api/products-mapping-status response:', response.data);
                 productUnmappedData = response.data.products || [];
                 productUnmappedPage = 1;
+                hasProcessed = true;
+                console.log('[DEBUG] hasProcessed set to', hasProcessed);
                 populateProductUnmappedTable();
+                updateDashboardProgress();
             } catch (error) {
                 showNotification('Error loading product mapping status: ' + error.message, 'error');
             } finally {
@@ -1460,7 +1604,13 @@
         }
 
         function populateProductUnmappedTable() {
+            console.log('[DEBUG] populateProductUnmappedTable called');
+            console.log('[DEBUG] hasProcessed:', hasProcessed);
+            console.log('[DEBUG] productUnmappedData.length:', productUnmappedData.length);
+            // Uncomment the next line to force table rendering for debugging:
+            // hasProcessed = true;
             const tbody = document.getElementById('product-unmapped-table');
+            console.log('[DEBUG] Populating product-unmapped-table:', !!tbody);
             tbody.innerHTML = '';
             if (!hasProcessed) {
                 const row = document.createElement('tr');
@@ -1483,10 +1633,19 @@
                     return true;
                 });
             }
-            // Progress summary
+            // Enhanced Progress summary
             const total = filtered.length;
             const fullyMapped = filtered.filter(p => p.fully_mapped).length;
-            document.getElementById('product-unmapped-progress').textContent = `${fullyMapped} / ${total} products fully mapped`;
+            const partiallyMapped = filtered.filter(p => p.mapped_count > 0 && !p.fully_mapped).length;
+            const totalUnmappedIngredients = filtered.reduce((sum, p) => sum + p.unmapped_count, 0);
+            
+            // Update dashboard progress
+            document.getElementById('product-progress-completed').textContent = fullyMapped;
+            document.getElementById('product-progress-partial').textContent = partiallyMapped;
+            document.getElementById('product-progress-unmapped-total').textContent = totalUnmappedIngredients;
+            document.getElementById('product-progress-percentage').textContent = total > 0 ? `${(fullyMapped / total * 100).toFixed(1)}% of total` : '0% of total';
+            document.getElementById('product-progress-partial-percentage').textContent = total > 0 ? `${(partiallyMapped / total * 100).toFixed(1)}% of total` : '0% of total';
+            document.getElementById('product-unmapped-progress').textContent = `${fullyMapped} / ${total} products fully mapped (${total > 0 ? (fullyMapped / total * 100).toFixed(1) : 0}%)`;
             // Pagination
             const totalPages = Math.max(1, Math.ceil(filtered.length / PRODUCT_PAGE_SIZE));
             if (productUnmappedPage > totalPages) productUnmappedPage = totalPages;
@@ -1496,26 +1655,64 @@
                 const p = filtered[i];
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-2 py-1 whitespace-nowrap text-xs text-gray-900">
                         <button class="expand-product-btn text-blue-600 hover:underline" data-product="${encodeURIComponent(p.product_name)}">
                             <span class="mr-2">${p.product_name}</span>
-                            <svg class="inline w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg class="inline w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                     </td>
-                    <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">${p.mapped_count} / ${p.total_ingredients} mapped</td>
-                    <td class="px-3 py-2 whitespace-nowrap text-sm">
-                        ${p.fully_mapped ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Complete</span>' : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Incomplete</span>'}
+                    <td class="px-2 py-1 whitespace-nowrap text-xs text-gray-900">${p.mapped_count} / ${p.total_ingredients} mapped</td>
+                    <td class="px-2 py-1 whitespace-nowrap text-xs">
+                        ${p.fully_mapped ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${mappedIcon}Complete</span>` : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Incomplete</span>`}
                     </td>
-                    <td class="px-3 py-2 whitespace-nowrap text-sm">
-                        <button class="add-ingredient-btn text-green-600 hover:underline" data-product="${encodeURIComponent(p.product_name)}">Add Ingredient</button>
-                    </td>
+                    <td class="px-2 py-1 whitespace-nowrap text-xs"></td>
                 `;
                 tbody.appendChild(tr);
                 // Expandable row for ingredients
                 const expandRow = document.createElement('tr');
                 expandRow.className = 'hidden product-ingredients-row';
                 expandRow.setAttribute('data-product', p.product_name);
-                expandRow.innerHTML = `<td colspan="4"><div class="p-4 bg-gray-50 rounded"><div class="font-semibold mb-2">Ingredients:</div><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-100"><tr><th class="px-3 py-2 text-xs font-medium text-gray-500">Ingredient</th><th class="px-3 py-2 text-xs font-medium text-gray-500">Status</th><th class="px-3 py-2 text-xs font-medium text-gray-500">Note</th><th class="px-3 py-2 text-xs font-medium text-gray-500">Action</th></tr></thead><tbody>${p.ingredients.map(ing => `<tr><td class="px-3 py-2 text-sm">${ing.original_ingredient}</td><td class="px-3 py-2 text-sm">${ing.is_mapped ? '<span class=\'text-green-700\'>Mapped</span>' : '<span class=\'text-red-700\'>Unmapped</span>'}</td><td class="px-3 py-2 text-sm">${ing.note || ''}</td><td class="px-3 py-2 text-sm">${!ing.is_mapped ? `<button class='text-blue-600 hover:underline map-ingredient-btn' data-product='${encodeURIComponent(p.product_name)}' data-ingredient='${encodeURIComponent(ing.original_ingredient)}'>Map</button>` : ''}</td></tr>`).join('')}</tbody></table></div></div></td>`;
+                expandRow.innerHTML = `<td colspan="4">
+                    <div class="bg-gray-50 rounded">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-2 py-1 text-xs font-medium text-gray-500">Ingredient</th>
+                                        <th class="px-2 py-1 text-xs font-medium text-gray-500">Status</th>
+                                        <th class="px-2 py-1 text-xs font-medium text-gray-500">Mapped Name</th>
+                                        <th class="px-2 py-1 text-xs font-medium text-gray-500">Label</th>
+                                        <th class="px-2 py-1 text-xs font-medium text-gray-500">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${p.ingredients.map(ing => `
+                                        <tr>
+                                            <td class="px-2 py-1 text-xs">${ing.original_ingredient}</td>
+                                            <td class="px-2 py-1 text-xs">${ing.is_mapped ? mappedIcon : unmappedIcon}</td>
+                                            <td class="px-2 py-1 text-xs">
+                                                ${ing.is_mapped ? `<input type='text' class='mapped-name-input border rounded px-1 py-0.5 text-xs' value="${ing.matched_name || ''}" data-product="${encodeURIComponent(p.product_name)}" data-ingredient="${encodeURIComponent(ing.original_ingredient)}">` : ''}
+                                                ${!ing.is_mapped && ing.matched_name ? `<div class='text-xs text-orange-600'>Best match: <span class='font-semibold'>${ing.matched_name}</span> (${ing.confidence ? ing.confidence.toFixed(1) : ''}%)</div>` : ''}
+                                                ${!ing.is_mapped && ing.alternatives && ing.alternatives.length > 0 ? `<div class='text-xs text-gray-500'>Alternatives: ${ing.alternatives.map((alt, idx) => `<button class='map-alt-btn text-blue-600 hover:underline' data-product='${encodeURIComponent(p.product_name)}' data-ingredient='${encodeURIComponent(ing.original_ingredient)}' data-altname='${encodeURIComponent(alt.name)}'>${alt.name} (${alt.score ? alt.score.toFixed(1) : ''}%)</button>`).join(', ')}</div>` : ''}
+                                            </td>
+                                            <td class="px-2 py-1 text-xs">
+                                                <select class='label-select border rounded px-1 py-0.5 text-xs' data-product="${encodeURIComponent(p.product_name)}" data-ingredient="${encodeURIComponent(ing.original_ingredient)}">
+                                                    <option value="" ${!ing.note ? 'selected' : ''}></option>
+                                                    <option value="New Ingredient" ${ing.note === 'New Ingredient' ? 'selected' : ''}>New Ingredient</option>
+                                                    <option value="User Mapped" ${ing.note === 'User Mapped' ? 'selected' : ''}>User Mapped</option>
+                                                    <option value="Incorrect Format" ${ing.note === 'Incorrect Format' ? 'selected' : ''}>Incorrect Format</option>
+                                                </select>
+                                            </td>
+                                            <td class="px-2 py-1 text-xs">
+                                                ${!ing.is_mapped ? `<button class='text-blue-600 hover:underline map-ingredient-btn' data-product='${encodeURIComponent(p.product_name)}' data-ingredient='${encodeURIComponent(ing.original_ingredient)}'>Map</button>` : ''}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </td>`;
                 tbody.appendChild(expandRow);
             }
             // Pagination controls
@@ -1532,6 +1729,14 @@
                 });
             });
             // Add event listeners for mapping
+            document.querySelectorAll('.map-alt-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    const pname = decodeURIComponent(this.getAttribute('data-product'));
+                    const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                    const altname = decodeURIComponent(this.getAttribute('data-altname'));
+                    await openMappingModal(ing, pname, altname);
+                });
+            });
             document.querySelectorAll('.map-ingredient-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const pname = decodeURIComponent(this.getAttribute('data-product'));
@@ -1539,11 +1744,56 @@
                     openMappingModal(ing, pname);
                 });
             });
-            // Add event listeners for add ingredient
-            document.querySelectorAll('.add-ingredient-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+            // Add event listeners for saving mapped name
+            document.querySelectorAll('.save-mapped-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
                     const pname = decodeURIComponent(this.getAttribute('data-product'));
-                    openAddIngredientModal(pname);
+                    const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                    const row = this.closest('tr');
+                    const mappedNameInput = row.querySelector('.mapped-name-input');
+                    const mappedName = mappedNameInput ? mappedNameInput.value : '';
+                    try {
+                        await axios.post('/api/manual-map', {
+                            original_ingredient: ing,
+                            ingredient_id: null,
+                            mapped_name: mappedName,
+                            note: '',
+                            product_name: pname
+                        });
+                        showNotification('Mapped value updated!', 'success');
+                        // Add changelog entry
+                        addChangelogEntry(`Updated mapped name for ingredient in product: ${pname}`, 'mapping');
+                        populateProductUnmappedTable();
+                        updateExportPreview();
+                    } catch (err) {
+                        showNotification('Error updating mapped value: ' + err.message, 'error');
+                    }
+                });
+            });
+            // Add event listeners for label dropdown
+            document.querySelectorAll('.label-select').forEach(sel => {
+                sel.addEventListener('change', async function() {
+                    const pname = decodeURIComponent(this.getAttribute('data-product'));
+                    const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                    const label = this.value;
+                    try {
+                        await axios.post('/api/manual-map', {
+                            original_ingredient: ing,
+                            ingredient_id: null,
+                            mapped_name: '',
+                            note: label,
+                            product_name: pname
+                        });
+                        // Live refresh: update only the relevant product row and product status
+                        if (window.refreshExpandedProductRow) {
+                            window.refreshExpandedProductRow(pname);
+                        } else {
+                            populateProductUnmappedTable();
+                        }
+                        updateExportPreview();
+                    } catch (err) {
+                        showNotification('Error updating label: ' + err.message, 'error');
+                    }
                 });
             });
         }
@@ -1554,6 +1804,8 @@
                 axios.post('/api/add-ingredient', { product_name: productName, ingredient_name: ingredient.trim() })
                     .then(() => {
                         showNotification('Ingredient added!', 'success');
+                        // Add changelog entry
+                        addChangelogEntry(`Added new ingredient "${ingredient.trim()}" to product: ${productName}`, 'ingredient');
                         loadProductUnmapped();
                     })
                     .catch(err => showNotification('Error adding ingredient: ' + err.message, 'error'));
@@ -1567,117 +1819,334 @@
                 const products = response.data.products || [];
                 const total = products.length;
                 const fullyMapped = products.filter(p => p.fully_mapped).length;
-                document.getElementById('mapped-count').textContent = fullyMapped;
-                document.getElementById('unmapped-count').textContent = total - fullyMapped;
+                
+                // Update product-level progress
+                document.getElementById('products-complete-count').textContent = fullyMapped;
+                document.getElementById('products-total-count').textContent = total;
+                document.getElementById('products-completion-percentage').textContent = total > 0 ? `${(fullyMapped / total * 100).toFixed(1)}%` : '0%';
             } catch (error) {
                 // fallback: do nothing
             }
         }
 
-        let demoMode = false;
-        const DEMO_PRODUCTS = [
-            { product_name: 'Gatorade Sports Drink Lemon & Lime | 600mL', product_company: 'Gatorade', ingredients: 'Water, Sucrose, Dextrose, Citric Acid, Sodium Citrate, Sodium Chloride, Monopotassium Phosphate, Flavour, Colour' },
-            { product_name: 'Coca-Cola Classic | 375mL', product_company: 'Coca-Cola', ingredients: 'Carbonated Water, Sugar, Colour (Caramel 150d), Food Acid (338), Flavour, Caffeine' },
-            { product_name: 'Pepsi Max | 600mL', product_company: 'Pepsi', ingredients: 'Carbonated Water, Colour (Caramel 150d), Food Acid (338), Sweeteners (950, 951), Flavour, Preservative (211), Caffeine' },
-            { product_name: 'Sprite Lemonade | 375mL', product_company: 'Sprite', ingredients: 'Carbonated Water, Sugar, Food Acid (330), Flavour' },
-            { product_name: 'Powerade Mountain Blast | 600mL', product_company: 'Powerade', ingredients: 'Water, Sucrose, Dextrose, Citric Acid, Sodium Citrate, Potassium Phosphate, Flavour, Colour' },
-            { product_name: 'Lipton Iced Tea Peach | 500mL', product_company: 'Lipton', ingredients: 'Water, Sugar, Peach Juice (0.1%), Acidity Regulator (330), Flavour, Tea Extract, Antioxidant (300)' },
-            { product_name: 'Red Bull Energy Drink | 250mL', product_company: 'Red Bull', ingredients: 'Water, Sucrose, Glucose, Citric Acid, Carbon Dioxide, Taurine, Acidity Regulator (Sodium Bicarbonate, Magnesium Carbonate), Caffeine, Flavourings, Colours' },
-            { product_name: 'Monster Energy | 500mL', product_company: 'Monster', ingredients: 'Carbonated Water, Sucrose, Glucose, Citric Acid, Flavourings, Taurine, Sodium Citrate, Colour, Caffeine, Preservative (202), Vitamins' },
-            { product_name: 'V Energy Drink | 500mL', product_company: 'V', ingredients: 'Carbonated Water, Sugar, Food Acid (330), Taurine, Flavour, Caffeine, Colour (150a), Preservative (202), Vitamins' },
-            { product_name: 'Schweppes Lemonade | 375mL', product_company: 'Schweppes', ingredients: 'Carbonated Water, Sugar, Food Acid (330), Flavour' },
-            { product_name: 'Solo Original Lemon | 375mL', product_company: 'Solo', ingredients: 'Carbonated Water, Sugar, Lemon Juice (5%), Food Acid (330), Flavour' },
-            { product_name: 'Fanta Orange | 375mL', product_company: 'Fanta', ingredients: 'Carbonated Water, Sugar, Food Acid (330), Flavour, Colour (110)' },
-            { product_name: 'Mount Franklin Lightly Sparkling | 450mL', product_company: 'Mount Franklin', ingredients: 'Carbonated Water, Natural Flavour' },
-            { product_name: 'Bundaberg Ginger Beer | 375mL', product_company: 'Bundaberg', ingredients: 'Carbonated Water, Cane Sugar, Ginger Root, Natural Flavour, Food Acid (330), Yeast, Preservative (202), Antioxidant (300)' },
-            { product_name: 'San Pellegrino Limonata | 330mL', product_company: 'San Pellegrino', ingredients: 'Water, Lemon Juice (16%), Sugar, Carbon Dioxide, Natural Flavour' },
-            { product_name: 'Mother Energy Drink | 500mL', product_company: 'Mother', ingredients: 'Carbonated Water, Sugar, Food Acid (330), Taurine, Flavour, Caffeine, Colour (150a), Preservative (202), Vitamins' },
-            { product_name: 'Sunkist Orange | 375mL', product_company: 'Sunkist', ingredients: 'Carbonated Water, Sugar, Food Acid (330), Flavour, Colour (110)' },
-            { product_name: 'Kirks Creaming Soda | 375mL', product_company: 'Kirks', ingredients: 'Carbonated Water, Sugar, Food Acid (330), Flavour, Colour (124)' },
-            { product_name: 'Appletiser Sparkling Apple | 275mL', product_company: 'Appletiser', ingredients: 'Carbonated Apple Juice (100%)' },
-            { product_name: 'Lift Lemon | 375mL', product_company: 'Lift', ingredients: 'Carbonated Water, Sugar, Lemon Juice (5%), Food Acid (330), Flavour' }
-        ];
-        const DEMO_INGREDIENTS = [
-            { ingredient_id: 1, name: 'Water' },
-            { ingredient_id: 2, name: 'Sugar' },
-            { ingredient_id: 3, name: 'Dextrose' },
-            { ingredient_id: 4, name: 'Citric Acid' },
-            { ingredient_id: 5, name: 'Sodium Citrate' },
-            { ingredient_id: 6, name: 'Sodium Chloride' },
-            { ingredient_id: 7, name: 'Monopotassium Phosphate' },
-            { ingredient_id: 8, name: 'Flavour' },
-            { ingredient_id: 9, name: 'Colour' },
-            { ingredient_id: 10, name: 'Caffeine' },
-            { ingredient_id: 11, name: 'Taurine' },
-            { ingredient_id: 12, name: 'Preservative' },
-            { ingredient_id: 13, name: 'Vitamins' },
-            { ingredient_id: 14, name: 'Tea Extract' },
-            { ingredient_id: 15, name: 'Peach Juice' },
-            { ingredient_id: 16, name: 'Lemon Juice' },
-            { ingredient_id: 17, name: 'Ginger Root' },
-            { ingredient_id: 18, name: 'Apple Juice' },
-            { ingredient_id: 19, name: 'Carbon Dioxide' },
-            { ingredient_id: 20, name: 'Food Acid' }
-        ];
-
-        function activateDemoMode() {
-            demoMode = true;
-            document.getElementById('demo-mode-btn').classList.add('bg-yellow-600', 'text-white');
-            document.getElementById('demo-mode-btn').textContent = 'Demo Mode (Active)';
-            showNotification('Demo mode activated! Demo data loaded.', 'info');
-            // Simulate file upload and processing
-            productsUploaded = true;
-            ingredientsUploaded = true;
-            setStatusBadge('products-status', 'Demo loaded', 'success');
-            setStatusBadge('ingredients-status', 'Demo loaded', 'success');
-            setProcessButtonState();
-            // Populate preview
-            showFilePreview('demo-products', { filename: 'demo_products.csv', rows: DEMO_PRODUCTS.length, columns: 3 });
-            showFilePreview('demo-ingredients', { filename: 'demo_ingredients.csv', rows: DEMO_INGREDIENTS.length, columns: 2 });
-            // Fake backend data for results/unmapped
-            lastResults.mapped = [];
-            lastResults.unmapped = [];
-            DEMO_PRODUCTS.forEach((prod, i) => {
-                const ings = prod.ingredients.split(',').map(s => s.trim());
-                ings.forEach((ing, j) => {
-                    const match = DEMO_INGREDIENTS.find(di => di.name.toLowerCase() === ing.toLowerCase());
-                    if (match) {
-                        lastResults.mapped.push({
-                            product_name: prod.product_name,
-                            product_company: prod.product_company,
-                            original_ingredient: ing,
-                            normalized_ingredient: ing.toLowerCase(),
-                            matched_name: match.name,
-                            confidence: 99,
-                            match_type: 'Demo',
-                            alternatives: [],
-                            timestamp: new Date().toISOString()
-                        });
-                    } else {
-                        lastResults.unmapped.push({
-                            product_name: prod.product_name,
-                            product_company: prod.product_company,
-                            original_ingredient: ing,
-                            normalized_ingredient: ing.toLowerCase(),
-                            matched_name: '',
-                            confidence: 60,
-                            match_type: 'Demo',
-                            alternatives: [],
-                            timestamp: new Date().toISOString()
-                        });
-                    }
-                });
+        // In populateProductUnmappedTable, update event listeners:
+        // After rendering the expandable row, add:
+        document.querySelectorAll('.map-alt-btn').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                const pname = decodeURIComponent(this.getAttribute('data-product'));
+                const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                const altname = decodeURIComponent(this.getAttribute('data-altname'));
+                // Open mapping modal with pre-filled search for this alternative
+                await openMappingModal(ing, pname, altname);
             });
-            document.getElementById('mapped-count').textContent = lastResults.mapped.length;
-            document.getElementById('unmapped-count').textContent = lastResults.unmapped.length;
-            setStatusBadge('process-status', 'Demo processed', 'success');
-            hasProcessed = true;
-            // Populate tables
-            populateResultsTable(lastResults.mapped);
-            populateProductUnmappedTable();
+        });
+        document.querySelectorAll('.map-ingredient-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const pname = decodeURIComponent(this.getAttribute('data-product'));
+                const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                // Open mapping modal for this ingredient (user can search any ingredient)
+                openMappingModal(ing, pname);
+            });
+        });
+        // When mapping modal is submitted, after successful mapping, call refreshExpandedProductRow(productName)
+        // When saving a note, after successful save, call refreshExpandedProductRow(productName)
+        // Implement refreshExpandedProductRow(productName):
+        async function refreshExpandedProductRow(productName) {
+            try {
+                const response = await axios.get('/api/products-mapping-status');
+                const products = response.data.products || [];
+                const product = products.find(p => p.product_name === productName);
+                if (!product) return;
+                const row = Array.from(document.querySelectorAll('.product-ingredients-row')).find(r => r.getAttribute('data-product') === productName);
+                if (row) {
+                    // Update the parent product row status
+                    const productRow = Array.from(document.querySelectorAll('tr')).find(r => {
+                        const btn = r.querySelector('.expand-product-btn');
+                        return btn && decodeURIComponent(btn.getAttribute('data-product')) === productName;
+                    });
+                    if (productRow) {
+                        const statusCell = productRow.querySelector('td:nth-child(3)');
+                        if (statusCell) {
+                            const statusSpan = product.fully_mapped ? 
+                                `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">${mappedIcon}Complete</span>` : 
+                                `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Incomplete</span>`;
+                            statusCell.innerHTML = statusSpan;
+                        }
+                        const progressCell = productRow.querySelector('td:nth-child(2)');
+                        if (progressCell) {
+                            progressCell.textContent = `${product.mapped_count} / ${product.total_ingredients} mapped`;
+                        }
+                    }
+                    
+                    // Update the expanded ingredients row
+                    let html = '<td colspan="4">';
+                    html += '<div class="bg-gray-50 rounded">';
+                    html += '<div class="overflow-x-auto">';
+                    html += '<table class="min-w-full divide-y divide-gray-200">';
+                    html += '<thead class="bg-gray-100">';
+                    html += '<tr>';
+                    html += '<th class="px-2 py-1 text-xs font-medium text-gray-500">Ingredient</th>';
+                    html += '<th class="px-2 py-1 text-xs font-medium text-gray-500">Status</th>';
+                    html += '<th class="px-2 py-1 text-xs font-medium text-gray-500">Mapped Name</th>';
+                    html += '<th class="px-2 py-1 text-xs font-medium text-gray-500">Label</th>';
+                    html += '<th class="px-2 py-1 text-xs font-medium text-gray-500">Action</th>';
+                    html += '</tr></thead><tbody>';
+                    html += product.ingredients.map(function(ing) {
+                        let mappedInput = ing.is_mapped ? "<input type='text' class='mapped-name-input border rounded px-1 py-0.5 text-xs' value='" + (ing.matched_name || '') + "' data-product='" + encodeURIComponent(product.product_name) + "' data-ingredient='" + encodeURIComponent(ing.original_ingredient) + "'>" : '';
+                        let bestMatch = (!ing.is_mapped && ing.matched_name) ? "<div class='text-xs text-orange-600'>Best match: <span class='font-semibold'>" + ing.matched_name + "</span> (" + (ing.confidence ? ing.confidence.toFixed(1) : '') + "%)</div>" : '';
+                        let alternatives = (!ing.is_mapped && ing.alternatives && ing.alternatives.length > 0) ? "<div class='text-xs text-gray-500'>Alternatives: " + ing.alternatives.map(function(alt) {
+                            return "<button class='map-alt-btn text-blue-600 hover:underline' data-product='" + encodeURIComponent(product.product_name) + "' data-ingredient='" + encodeURIComponent(ing.original_ingredient) + "' data-altname='" + encodeURIComponent(alt.name) + "'>" + alt.name + " (" + (alt.score ? alt.score.toFixed(1) : '') + "%)</button>";
+                        }).join(', ') + "</div>" : '';
+                        // Label dropdown instead of note input
+                        let labelSelect = "<select class='label-select border rounded px-1 py-0.5 text-xs' data-product='" + encodeURIComponent(product.product_name) + "' data-ingredient='" + encodeURIComponent(ing.original_ingredient) + "'>" +
+                            "<option value='' " + (!ing.note ? 'selected' : '') + "></option>" +
+                            "<option value='New Ingredient' " + (ing.note === 'New Ingredient' ? 'selected' : '') + ">New Ingredient</option>" +
+                            "<option value='User Mapped' " + (ing.note === 'User Mapped' ? 'selected' : '') + ">User Mapped</option>" +
+                            "<option value='Incorrect Format' " + (ing.note === 'Incorrect Format' ? 'selected' : '') + ">Incorrect Format</option>" +
+                            "</select>";
+                        // Only show Map button for unmapped ingredients, no Save button for mapped
+                        let actionBtn = !ing.is_mapped ? "<button class='text-blue-600 hover:underline map-ingredient-btn' data-product='" + encodeURIComponent(product.product_name) + "' data-ingredient='" + encodeURIComponent(ing.original_ingredient) + "'>Map</button>" : "";
+                        
+                        return '<tr>' +
+                            '<td class="px-2 py-1 text-xs">' + ing.original_ingredient + '</td>' +
+                            '<td class="px-2 py-1 text-xs">' + (ing.is_mapped ? mappedIcon : unmappedIcon) + '</td>' +
+                            '<td class="px-2 py-1 text-xs">' + mappedInput + bestMatch + alternatives + '</td>' +
+                            '<td class="px-2 py-1 text-xs">' + labelSelect + '</td>' +
+                            '<td class="px-2 py-1 text-xs">' + actionBtn + '</td>' +
+                            '</tr>';
+                    }).join('') + '</tbody></table></div></div></td>';
+                    row.innerHTML = html;
+                    
+                    // Re-attach event listeners for new buttons/inputs
+                    row.querySelectorAll('.map-alt-btn').forEach(btn => {
+                        btn.addEventListener('click', async function(e) {
+                            const pname = decodeURIComponent(this.getAttribute('data-product'));
+                            const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                            const altname = decodeURIComponent(this.getAttribute('data-altname'));
+                            await openMappingModal(ing, pname, altname);
+                        });
+                    });
+                    row.querySelectorAll('.map-ingredient-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const pname = decodeURIComponent(this.getAttribute('data-product'));
+                            const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                            openMappingModal(ing, pname);
+                        });
+                    });
+                    row.querySelectorAll('.mapped-name-input').forEach(input => {
+                        input.addEventListener('change', async function() {
+                            const pname = decodeURIComponent(this.getAttribute('data-product'));
+                            const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                            const mappedName = this.value;
+                            try {
+                                await axios.post('/api/manual-map', {
+                                    original_ingredient: ing,
+                                    ingredient_id: null,
+                                    mapped_name: mappedName,
+                                    product_name: pname
+                                });
+                                refreshExpandedProductRow(pname);
+                                updateExportPreview();
+                            } catch (err) {
+                                showNotification('Error updating mapped name: ' + err.message, 'error');
+                            }
+                        });
+                    });
+                    row.querySelectorAll('.label-select').forEach(sel => {
+                        sel.addEventListener('change', async function() {
+                            const pname = decodeURIComponent(this.getAttribute('data-product'));
+                            const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                            const label = this.value;
+                            try {
+                                await axios.post('/api/manual-map', {
+                                    original_ingredient: ing,
+                                    ingredient_id: null,
+                                    mapped_name: '',
+                                    note: label,
+                                    product_name: pname
+                                });
+                                refreshExpandedProductRow(pname);
+                                updateExportPreview();
+                            } catch (err) {
+                                showNotification('Error updating label: ' + err.message, 'error');
+                            }
+                        });
+                    });
+
+                    // Update dashboard progress
+                    updateDashboardProgress();
+                }
+            } catch (err) {
+                populateProductUnmappedTable();
+            }
         }
 
-        document.getElementById('demo-mode-btn').addEventListener('click', activateDemoMode);
+        // Make sure mapped-name-input changes trigger updates without a Save button
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('mapped-name-input')) {
+                const pname = decodeURIComponent(e.target.getAttribute('data-product'));
+                const ing = decodeURIComponent(e.target.getAttribute('data-ingredient'));
+                const mappedName = e.target.value;
+                axios.post('/api/manual-map', {
+                    original_ingredient: ing,
+                    ingredient_id: null,
+                    mapped_name: mappedName,
+                    product_name: pname
+                }).then(() => {
+                    showNotification('Mapped name updated!', 'success');
+                    refreshExpandedProductRow(pname);
+                    updateExportPreview();
+                }).catch(err => showNotification('Error updating mapped name: ' + err.message, 'error'));
+            }
+        });
+
+        // Add JS to populate and update the export preview textarea
+        async function updateExportPreview() {
+          try {
+            const response = await axios.get('/api/export-csv');
+            document.getElementById('export-preview-textarea').value = response.data.csv || '';
+          } catch (err) {
+            document.getElementById('export-preview-textarea').value = 'Error loading export CSV.';
+          }
+        }
+        // Call updateExportPreview when switching to the export-preview tab
+        // and after any mapping or note change
+        document.getElementById('copy-export-csv-btn').addEventListener('click', function() {
+          const textarea = document.getElementById('export-preview-textarea');
+          textarea.select();
+          document.execCommand('copy');
+          showNotification('Export CSV copied to clipboard!', 'success');
+        });
+
+        // Changelog sidebar toggle logic
+        const changelogSidebar = document.getElementById('changelog-sidebar');
+        const showChangelogBtn = document.getElementById('show-changelog-btn');
+        const hideChangelogBtn = document.getElementById('hide-changelog-btn');
+        function hideChangelog() {
+          changelogSidebar.style.display = 'none';
+          showChangelogBtn.style.display = 'block';
+        }
+        function showChangelog() {
+          changelogSidebar.style.display = 'flex';
+          showChangelogBtn.style.display = 'none';
+        }
+        hideChangelogBtn.addEventListener('click', hideChangelog);
+        showChangelogBtn.addEventListener('click', showChangelog);
+        // Start with sidebar collapsed
+        showChangelogBtn.style.display = 'block';
+        changelogSidebar.style.display = 'none';
+
+        // Enhanced changelog system with automatic updates
+        function addChangelogEntry(message, category = 'general') {
+            const changelogList = document.getElementById('changelog-list');
+            const now = new Date();
+            const timestamp = now.toISOString();
+            
+            // Create new changelog entry
+            const li = document.createElement('li');
+            li.setAttribute('data-date', timestamp);
+            li.setAttribute('data-category', category);
+            li.className = 'mb-2 p-2 bg-blue-50 border-l-4 border-blue-400 rounded';
+            
+            // Format the date and time nicely
+            const dateStr = now.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            li.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <span class="text-sm text-gray-700">${message}</span>
+                    <span class="text-xs text-gray-500 ml-2">${dateStr}</span>
+                </div>
+            `;
+            
+            // Add to top of list (most recent first)
+            changelogList.insertBefore(li, changelogList.firstChild);
+            
+            // Limit to last 20 entries to prevent bloat
+            const entries = changelogList.children;
+            if (entries.length > 20) {
+                changelogList.removeChild(entries[entries.length - 1]);
+            }
+            
+            // Highlight the changelog button to indicate new activity
+            highlightChangelogButton();
+        }
+        
+        function highlightChangelogButton() {
+            const showBtn = document.getElementById('show-changelog-btn');
+            if (showBtn.style.display !== 'none') {
+                showBtn.className = showBtn.className.replace('bg-blue-600', 'bg-green-600 animate-pulse');
+                setTimeout(() => {
+                    showBtn.className = showBtn.className.replace('bg-green-600 animate-pulse', 'bg-blue-600');
+                }, 3000);
+            }
+        }
+
+        // Format existing changelog entries with proper dates
+        function formatExistingChangelogEntries() {
+            document.querySelectorAll('#changelog-list li[data-date]').forEach(li => {
+                const dateStr = li.getAttribute('data-date');
+                if (!dateStr) return;
+                
+                const date = new Date(dateStr);
+                const formattedDate = date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                const text = li.textContent || li.innerText;
+                li.className = 'mb-2 p-2 bg-gray-50 border-l-4 border-gray-300 rounded';
+                li.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-sm text-gray-600">${text}</span>
+                        <span class="text-xs text-gray-400 ml-2">${formattedDate}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        // Initialize existing entries on page load
+        formatExistingChangelogEntries();
+
+        // 2. Enhance ingredient status icons in all tables
+        // In populateProductUnmappedTable and refreshExpandedProductRow, replace status text with SVG icons:
+        // For mapped:
+        const mappedIcon = `<svg class='inline w-4 h-4 text-green-600 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/></svg>`;
+        // For unmapped:
+        const unmappedIcon = `<svg class='inline w-4 h-4 text-red-600 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>`;
+        // Use these in the status column:
+        // ...
+        // <td class="px-3 py-2 text-sm">${ing.is_mapped ? mappedIcon + 'Mapped' : unmappedIcon + 'Unmapped'}</td>
+        // ...
+        // ... existing code ...
+        // 3. Ensure UI auto-refreshes after mapping/note save
+        // In the mapping modal submit handler and note save handler, call refreshExpandedProductRow(productName) after a successful update.
+        // ... existing code ...
+
+        document.addEventListener('change', function(e) {
+          if (e.target.classList.contains('label-select')) {
+            const pname = decodeURIComponent(e.target.getAttribute('data-product'));
+            const ing = decodeURIComponent(e.target.getAttribute('data-ingredient'));
+            const label = e.target.value;
+            axios.post('/api/manual-map', {
+              original_ingredient: ing,
+              ingredient_id: null,
+              mapped_name: null,
+              note: label,
+              product_name: pname
+            }).then(() => {
+              showNotification('Label updated!', 'success');
+              refreshExpandedProductRow(pname);
+              updateExportPreview();
+            }).catch(err => showNotification('Error updating label: ' + err.message, 'error'));
+          }
+        });
     </script>
 </body>
 </html> 
