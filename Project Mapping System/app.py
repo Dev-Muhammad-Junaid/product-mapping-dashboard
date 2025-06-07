@@ -1072,7 +1072,12 @@ def export_custom():
     if not fields:
         return jsonify({'success': False, 'error': 'No fields selected'}), 400
     try:
-        export_df = mapped_df[fields]
+        # Filter fields to only include those that actually exist in the DataFrame
+        available_fields = [field for field in fields if field in mapped_df.columns]
+        if not available_fields:
+            return jsonify({'success': False, 'error': 'None of the selected fields exist in the data'}), 400
+        
+        export_df = mapped_df[available_fields]
         if filename:
             if not filename.endswith('.csv'):
                 filename += '.csv'

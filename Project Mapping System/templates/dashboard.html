@@ -1543,12 +1543,36 @@
             // Always show field checkboxes and filename input
             const fieldsContainer = document.getElementById('custom-export-fields');
             fieldsContainer.innerHTML = '';
-            // Assume lastResults.mapped[0] has all possible fields
+            
+            // Define all possible fields that could be in the mapping results
+            const allPossibleFields = [
+                'product_name',
+                'product_company', 
+                'original_ingredient',
+                'normalized_ingredient',
+                'ingredient_id',
+                'matched_name',
+                'confidence',
+                'status',
+                'match_type',
+                'mapping_source',
+                'note',
+                'timestamp',
+                'fully_mapped'
+            ];
+            
+            // Get actual fields from sample data and merge with possible fields
             const sample = lastResults.mapped[0] || {};
-            Object.keys(sample).forEach(field => {
+            const sampleFields = Object.keys(sample);
+            
+            // Combine and deduplicate fields
+            const allFields = [...new Set([...sampleFields, ...allPossibleFields])];
+            
+            allFields.forEach(field => {
                 const label = document.createElement('label');
                 label.className = 'block mb-2';
-                label.innerHTML = `<input type='checkbox' name='fields' value='${field}' checked class='mr-2 custom-export-field'>${field}`;
+                const displayName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                label.innerHTML = `<input type='checkbox' name='fields' value='${field}' checked class='mr-2 custom-export-field'>${displayName}`;
                 fieldsContainer.appendChild(label);
             });
             document.getElementById('custom-export-filename').value = 'custom_export.csv';
