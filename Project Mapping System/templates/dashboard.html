@@ -68,16 +68,20 @@
                 <span id="ingredients-status" class="mt-2 text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">Not uploaded</span>
             </div>
             
-            <!-- Product-Level Progress -->
+            <!-- Mapping Results Progress -->
             <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center">
-                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Products Complete</h3>
-                <p class="text-2xl font-bold text-green-600" id="products-complete-count">0</p>
-                <div class="text-center mt-2">
-                    <span class="text-xs text-gray-500">out of </span>
-                    <span class="text-xs font-medium text-gray-700" id="products-total-count">0</span>
-                    <span class="text-xs text-gray-500"> total</span>
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Mapping Results</h3>
+                <div class="flex space-x-4 mt-2">
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-green-600" id="mapped-count">0</p>
+                        <span class="text-xs text-gray-500">Mapped</span>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-red-600" id="unmapped-count">0</p>
+                        <span class="text-xs text-gray-500">Unmapped</span>
+                    </div>
                 </div>
-                <div class="text-center mt-1">
+                <div class="text-center mt-2">
                     <span class="text-sm font-medium text-green-600" id="products-completion-percentage">0%</span>
                     <span class="text-xs text-gray-500"> completed</span>
                 </div>
@@ -650,11 +654,11 @@
                                 // Add changelog entry
                                 addChangelogEntry('Data files loaded and ready for processing', 'system');
                                 setProcessButtonState();
-                                if (response.data.products_count !== undefined) {
-                                    document.getElementById('products-count').textContent = response.data.products_count;
+                                if (loadResp.data.products_count !== undefined) {
+                                    document.getElementById('products-count').textContent = loadResp.data.products_count;
                                 }
-                                if (response.data.ingredients_count !== undefined) {
-                                    document.getElementById('ingredients-count').textContent = response.data.ingredients_count;
+                                if (loadResp.data.ingredients_count !== undefined) {
+                                    document.getElementById('ingredients-count').textContent = loadResp.data.ingredients_count;
                                 }
                             } else {
                                 showNotification('Failed to load data: ' + loadResp.data.error, 'error');
@@ -839,8 +843,21 @@
                 });
                 console.log('[processIngredients] /api/process response:', response.data);
                 if (response.data.success) {
-                    document.getElementById('mapped-count').textContent = response.data.mapped_count;
-                    document.getElementById('unmapped-count').textContent = response.data.unmapped_count;
+                    // Update counts safely - check if elements exist
+                    const mappedCountEl = document.getElementById('mapped-count');
+                    const unmappedCountEl = document.getElementById('unmapped-count');
+                    const completionPercentageEl = document.getElementById('products-completion-percentage');
+                    
+                    if (mappedCountEl) mappedCountEl.textContent = response.data.mapped_count;
+                    if (unmappedCountEl) unmappedCountEl.textContent = response.data.unmapped_count;
+                    
+                    // Update completion percentage
+                    if (completionPercentageEl) {
+                        const total = response.data.mapped_count + response.data.unmapped_count;
+                        const percentage = total > 0 ? ((response.data.mapped_count / total) * 100).toFixed(1) : '0';
+                        completionPercentageEl.textContent = percentage + '%';
+                    }
+                    
                     console.log('[processIngredients] Updated mapped/unmapped counts:', response.data.mapped_count, response.data.unmapped_count);
                     document.getElementById('export-btn').disabled = false;
                     updateLogs(response.data.logs);
@@ -1429,9 +1446,11 @@
                 if (response.data.success) {
                     document.getElementById('products-count').textContent = '0';
                     document.getElementById('ingredients-count').textContent = '0';
-                    // Clear enhanced dashboard progress
-                    document.getElementById('products-complete-count').textContent = '0';
-                    document.getElementById('products-total-count').textContent = '0';
+                    // Clear mapping counts
+                    const mappedCountEl = document.getElementById('mapped-count');
+                    const unmappedCountEl = document.getElementById('unmapped-count');
+                    if (mappedCountEl) mappedCountEl.textContent = '0';
+                    if (unmappedCountEl) unmappedCountEl.textContent = '0';
                     document.getElementById('products-completion-percentage').textContent = '0%';
                     document.getElementById('process-btn').disabled = true;
                     document.getElementById('export-btn').disabled = true;
@@ -1451,7 +1470,7 @@
                     if (productUnmappedTable) productUnmappedTable.innerHTML = '';
                     const productUnmappedProgress = document.getElementById('product-unmapped-progress');
                     if (productUnmappedProgress) productUnmappedProgress.textContent = '';
-                    // Clear product progress elements
+                    // Clear product progress elements (if they exist)
                     const progressCompleted = document.getElementById('product-progress-completed');
                     if (progressCompleted) progressCompleted.textContent = '0';
                     const progressPartial = document.getElementById('product-progress-partial');
@@ -2083,7 +2102,7 @@
                 setTimeout(() => {
                     showBtn.className = showBtn.className.replace('bg-green-600 animate-pulse', 'bg-blue-600');
                 }, 3000);
-            }
+            }   
         }
 
         // Format existing changelog entries with proper dates

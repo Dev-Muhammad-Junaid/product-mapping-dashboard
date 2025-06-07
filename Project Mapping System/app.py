@@ -894,19 +894,27 @@ def export_results():
                 unmapped = len(unmapped_df[unmapped_df['product_name'] == pname])
                 prod_status[pname] = (unmapped == 0 and total > 0)
             mapped_df['fully_mapped'] = mapped_df['product_name'].map(prod_status)
-        mapped_filename = f'mapped_ingredients_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        import tempfile
+        import os
+        
+        # Create files in temp directory to avoid permission issues
+        temp_dir = tempfile.gettempdir()
+        
+        mapped_filename = os.path.join(temp_dir, f'mapped_ingredients_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
         mapped_df.to_csv(mapped_filename, index=False)
-        unmapped_filename = f'unmapped_ingredients_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        
+        unmapped_filename = os.path.join(temp_dir, f'unmapped_ingredients_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
         unmapped_df.to_csv(unmapped_filename, index=False)
-        logs_filename = f'processing_logs_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        
+        logs_filename = os.path.join(temp_dir, f'processing_logs_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
         logs_df = pd.DataFrame(mapper.processing_logs)
         logs_df.to_csv(logs_filename, index=False)
         return jsonify({
             'success': True,
             'files': {
-                'mapped': mapped_filename,
-                'unmapped': unmapped_filename,
-                'logs': logs_filename
+                'mapped': os.path.basename(mapped_filename),
+                'unmapped': os.path.basename(unmapped_filename),
+                'logs': os.path.basename(logs_filename)
             }
         })
     except Exception as e:
@@ -1070,10 +1078,31 @@ def export_custom():
                 filename += '.csv'
         else:
             filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
-        export_df.to_csv(filename, index=False)
-        return send_file(filename, as_attachment=True)
+        
+        # Create file in temp directory
+        import tempfile
+        import os
+        temp_dir = tempfile.gettempdir()
+        file_path = os.path.join(temp_dir, filename)
+        export_df.to_csv(file_path, index=False)
+        
+        return send_file(file_path, as_attachment=True, download_name=filename)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/export-csv', methods=['GET'])
+def export_csv():
+    """Return the mapped results as a CSV string (for export preview). Only mapped rows."""
+    import pandas as pd
+    try:
+        mapped_df = pd.DataFrame(mapper.mapping_results)
+        if mapped_df.empty:
+            csv_str = ''
+        else:
+            csv_str = mapped_df.to_csv(index=False)
+        return jsonify({'csv': csv_str})
+    except Exception as e:
+        return jsonify({'csv': '', 'error': str(e)}), 500
 
 def to_python_type(val):
     if isinstance(val, dict):
