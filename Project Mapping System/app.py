@@ -858,6 +858,42 @@ def manual_map():
             break
     return jsonify({'success': True})
 
+@app.route('/api/remap-ingredient', methods=['POST'])
+def remap_ingredient():
+    """Remap an already mapped ingredient to a different ingredient"""
+    data = request.get_json()
+    original_ingredient = data['original_ingredient']
+    new_ingredient_id = data['new_ingredient_id']
+    product_name = data.get('product_name', '')
+    note = data.get('note', '')
+    
+    # Find the new ingredient in database
+    new_matched_ingredient = mapper.ingredients_db[
+        mapper.ingredients_db['ingredient_id'] == new_ingredient_id
+    ]
+    if new_matched_ingredient.empty:
+        return jsonify({'success': False, 'error': 'New ingredient ID not found'})
+    new_matched_ingredient = new_matched_ingredient.iloc[0]
+    
+    # Find the existing mapping in mapped results
+    for i, item in enumerate(mapper.mapping_results):
+        if (item['original_ingredient'] == original_ingredient and 
+            (not product_name or item.get('product_name') == product_name)):
+            # Update the existing mapping
+            mapper.mapping_results[i].update({
+                'ingredient_id': new_ingredient_id,
+                'matched_name': new_matched_ingredient['name'],
+                'status': 'mapped',
+                'confidence': 100,
+                'match_type': 'manual_remap',
+                'mapping_source': 'manual',
+                'note': note,
+                'timestamp': datetime.now().isoformat()
+            })
+            return jsonify({'success': True})
+    
+    return jsonify({'success': False, 'error': 'Original mapping not found'})
+
 @app.route('/api/add-synonym', methods=['POST'])
 def add_synonym():
     """Add a synonym mapping"""

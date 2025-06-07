@@ -208,6 +208,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Matched Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="results-table" class="bg-white divide-y divide-gray-200">
@@ -356,7 +357,7 @@
                 <div class="flex justify-end space-x-3">
                     <button id="cancel-mapping" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">Cancel</button>
                     <button id="confirm-mapping" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded disabled:opacity-50" disabled>
-                        Map Ingredient
+                        <span id="confirm-mapping-text">Map Ingredient</span>
                     </button>
                 </div>
             </div>
@@ -996,12 +997,32 @@
                             ${result.match_type}
                         </span>
                     </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-sm font-medium">
+                        <button class="remap-btn text-xs text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 border border-blue-300 rounded hover:bg-blue-50" 
+                                data-ingredient="${result.original_ingredient.replace(/'/g, "&#39;")}" 
+                                data-product="${result.product_name.replace(/'/g, "&#39;")}"
+                                data-current-match="${result.matched_name.replace(/'/g, "&#39;")}"
+                                title="Remap this ingredient">
+                            Remap
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(row);
             }
             renderPagination('results-pagination', resultsPage, total, (newPage) => {
                 resultsPage = newPage;
                 populateResultsTable(results);
+            });
+            
+            // Add event listeners for remap buttons
+            document.querySelectorAll('.remap-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const ingredient = this.getAttribute('data-ingredient');
+                    const product = this.getAttribute('data-product');
+                    const currentMatch = this.getAttribute('data-current-match');
+                    window.remappingIngredient = { ingredient, product, currentMatch };
+                    openMappingModal(ingredient, product, currentMatch);
+                });
             });
         }
 
@@ -1144,7 +1165,21 @@
         async function openMappingModal(ingredient, productName = null, prefill = null) {
             currentMappingIngredient = ingredient;
             selectedIngredientId = null;
+            
+            // Check if this is a remapping operation
+            const isRemapping = window.remappingIngredient && window.remappingIngredient.ingredient === ingredient;
+            const modalTitle = isRemapping ? 'Remap Ingredient' : 'Manual Mapping';
+            document.querySelector('#mapping-modal h3').textContent = modalTitle;
+            
+            // Update button text
+            const confirmButtonText = isRemapping ? 'Remap Ingredient' : 'Map Ingredient';
+            document.getElementById('confirm-mapping-text').textContent = confirmButtonText;
+            
             document.getElementById('modal-ingredient').textContent = ingredient + (productName ? ` (Product: ${productName})` : '');
+            if (isRemapping) {
+                document.getElementById('modal-ingredient').textContent += ` - Currently mapped to: ${window.remappingIngredient.currentMatch}`;
+            }
+            
             document.getElementById('mapping-modal').classList.remove('hidden');
             document.getElementById('mapping-modal').classList.add('flex');
             document.getElementById('ingredient-search').value = prefill || '';
@@ -1197,6 +1232,11 @@
             document.getElementById('ingredient-search').value = '';
             document.getElementById('search-results').innerHTML = '';
             document.getElementById('search-results').classList.add('hidden');
+            
+            // Clear remapping state and reset modal title and button text
+            window.remappingIngredient = null;
+            document.querySelector('#mapping-modal h3').textContent = 'Manual Mapping';
+            document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
         }
 
         async function searchIngredients() {
@@ -1239,6 +1279,8 @@
 
         async function confirmMapping() {
             const label = document.getElementById('mapping-label').value;
+            
+            // Handle batch mapping
             if (window.batchMappingIngredients && window.batchMappingIngredients.length > 0) {
                 try {
                     const response = await axios.post('/api/manual-map', {
@@ -1246,46 +1288,73 @@
                         ingredient_id: selectedIngredientId,
                         note: label
                     });
-                                    if (response.data.success) {
-                    showNotification('Batch mapping completed!', 'success');
-                    // Add changelog entry
-                    addChangelogEntry(`Batch mapped ${window.batchMappingIngredients.length} ingredients`, 'batch-mapping');
-                    await loadResults();
-                    closeModal();
-                    window.batchMappingIngredients = null;
-                } else {
-                    showNotification('Batch mapping failed: ' + response.data.error, 'error');
-                }
+                    if (response.data.success) {
+                        showNotification('Batch mapping completed!', 'success');
+                        addChangelogEntry(`Batch mapped ${window.batchMappingIngredients.length} ingredients`, 'batch-mapping');
+                        await loadResults();
+                        closeModal();
+                        window.batchMappingIngredients = null;
+                    } else {
+                        showNotification('Batch mapping failed: ' + response.data.error, 'error');
+                    }
                 } catch (error) {
                     showNotification('Error in batch mapping: ' + error.message, 'error');
                 }
                 return;
             }
+            
             if (!currentMappingIngredient || !selectedIngredientId) return;
+            
+            // Check if this is a remapping operation
+            const isRemapping = window.remappingIngredient && window.remappingIngredient.ingredient === currentMappingIngredient;
+            
             try {
-                const response = await axios.post('/api/manual-map', {
-                    original_ingredient: currentMappingIngredient,
-                    ingredient_id: selectedIngredientId,
-                    note: label
-                });
+                let response;
+                if (isRemapping) {
+                    // Use remap endpoint for already mapped ingredients
+                    response = await axios.post('/api/remap-ingredient', {
+                        original_ingredient: currentMappingIngredient,
+                        new_ingredient_id: selectedIngredientId,
+                        product_name: window.remappingIngredient.product,
+                        note: label
+                    });
+                } else {
+                    // Use regular mapping endpoint for unmapped ingredients
+                    response = await axios.post('/api/manual-map', {
+                        original_ingredient: currentMappingIngredient,
+                        ingredient_id: selectedIngredientId,
+                        note: label
+                    });
+                }
+                
                 if (response.data.success) {
-                    showNotification('Ingredient mapped successfully!', 'success');
+                    const action = isRemapping ? 'remapped' : 'mapped';
+                    showNotification(`Ingredient ${action} successfully!`, 'success');
+                    
                     // Add changelog entry
                     const productName = document.getElementById('modal-ingredient').textContent.split(' (Product: ')[1]?.replace(')','');
-                    addChangelogEntry(`Mapped ingredient: ${currentMappingIngredient}${productName ? ` in ${productName}` : ''}`, 'mapping');
-                    // Refresh only the relevant product row and export preview
-                    if (window.refreshExpandedProductRow) {
+                    const oldMatch = isRemapping ? ` (was: ${window.remappingIngredient.currentMatch})` : '';
+                    addChangelogEntry(`${action.charAt(0).toUpperCase() + action.slice(1)} ingredient: ${currentMappingIngredient}${oldMatch}${productName ? ` in ${productName}` : ''}`, 'mapping');
+                    
+                    // Refresh displays
+                    await loadResults(); // Refresh results table
+                    if (window.refreshExpandedProductRow && productName) {
                         window.refreshExpandedProductRow(productName);
                     } else {
                         populateProductUnmappedTable();
                     }
                     updateExportPreview();
                     closeModal();
+                    
+                    // Clear remapping state
+                    window.remappingIngredient = null;
                 } else {
-                    showNotification('Mapping failed: ' + response.data.error, 'error');
+                    const action = isRemapping ? 'remapping' : 'mapping';
+                    showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)} failed: ` + response.data.error, 'error');
                 }
             } catch (error) {
-                showNotification('Error mapping ingredient: ' + error.message, 'error');
+                const action = isRemapping ? 'remapping' : 'mapping';
+                showNotification(`Error ${action} ingredient: ` + error.message, 'error');
             }
         }
 
@@ -1747,7 +1816,10 @@
                                                 </select>
                                             </td>
                                             <td class="px-2 py-1 text-xs">
-                                                ${!ing.is_mapped ? `<button class='text-blue-600 hover:underline map-ingredient-btn' data-product='${encodeURIComponent(p.product_name)}' data-ingredient='${encodeURIComponent(ing.original_ingredient)}'>Map</button>` : ''}
+                                                ${!ing.is_mapped ? 
+                                                    `<button class='text-blue-600 hover:underline map-ingredient-btn' data-product='${encodeURIComponent(p.product_name)}' data-ingredient='${encodeURIComponent(ing.original_ingredient)}'>Map</button>` : 
+                                                    `<button class='text-orange-600 hover:underline remap-product-ingredient-btn' data-product='${encodeURIComponent(p.product_name)}' data-ingredient='${encodeURIComponent(ing.original_ingredient)}' data-current-match='${encodeURIComponent(ing.matched_name || '')}'>Remap</button>`
+                                                }
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -1785,6 +1857,17 @@
                     const pname = decodeURIComponent(this.getAttribute('data-product'));
                     const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
                     openMappingModal(ing, pname);
+                });
+            });
+            
+            // Add event listeners for product-centric remap buttons
+            document.querySelectorAll('.remap-product-ingredient-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const pname = decodeURIComponent(this.getAttribute('data-product'));
+                    const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                    const currentMatch = decodeURIComponent(this.getAttribute('data-current-match'));
+                    window.remappingIngredient = { ingredient: ing, product: pname, currentMatch };
+                    openMappingModal(ing, pname, currentMatch);
                 });
             });
             // Add event listeners for saving mapped name
@@ -1947,8 +2030,10 @@
                             "<option value='User Mapped' " + (ing.note === 'User Mapped' ? 'selected' : '') + ">User Mapped</option>" +
                             "<option value='Incorrect Format' " + (ing.note === 'Incorrect Format' ? 'selected' : '') + ">Incorrect Format</option>" +
                             "</select>";
-                        // Only show Map button for unmapped ingredients, no Save button for mapped
-                        let actionBtn = !ing.is_mapped ? "<button class='text-blue-600 hover:underline map-ingredient-btn' data-product='" + encodeURIComponent(product.product_name) + "' data-ingredient='" + encodeURIComponent(ing.original_ingredient) + "'>Map</button>" : "";
+                        // Show Map button for unmapped ingredients, Remap button for mapped ingredients
+                        let actionBtn = !ing.is_mapped ? 
+                            "<button class='text-blue-600 hover:underline map-ingredient-btn' data-product='" + encodeURIComponent(product.product_name) + "' data-ingredient='" + encodeURIComponent(ing.original_ingredient) + "'>Map</button>" : 
+                            "<button class='text-orange-600 hover:underline remap-product-ingredient-btn' data-product='" + encodeURIComponent(product.product_name) + "' data-ingredient='" + encodeURIComponent(ing.original_ingredient) + "' data-current-match='" + encodeURIComponent(ing.matched_name || '') + "'>Remap</button>";
                         
                         return '<tr>' +
                             '<td class="px-2 py-1 text-xs">' + ing.original_ingredient + '</td>' +
@@ -1974,6 +2059,15 @@
                             const pname = decodeURIComponent(this.getAttribute('data-product'));
                             const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
                             openMappingModal(ing, pname);
+                        });
+                    });
+                    row.querySelectorAll('.remap-product-ingredient-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const pname = decodeURIComponent(this.getAttribute('data-product'));
+                            const ing = decodeURIComponent(this.getAttribute('data-ingredient'));
+                            const currentMatch = decodeURIComponent(this.getAttribute('data-current-match'));
+                            window.remappingIngredient = { ingredient: ing, product: pname, currentMatch };
+                            openMappingModal(ing, pname, currentMatch);
                         });
                     });
                     row.querySelectorAll('.mapped-name-input').forEach(input => {
