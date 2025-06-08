@@ -959,23 +959,32 @@ def export_results():
 @app.route('/api/ingredients/search')
 def search_ingredients():
     """Search ingredients database"""
-    query = request.args.get('q', '').lower()
-    
-    if not query or len(query) < 2:
-        return jsonify([])
-    
-    if mapper.ingredients_db is None:
-        return jsonify([])
-    
-    # Search in ingredient names
-    matches = mapper.ingredients_db[
-        mapper.ingredients_db['name'].str.lower().str.contains(query, na=False)
-    ].head(20)
-    
-    return jsonify([{
-        'id': row['ingredient_id'],
-        'name': row['name']
-    } for _, row in matches.iterrows()])
+    try:
+        query = request.args.get('q', '').lower()
+        
+        if not query or len(query) < 2:
+            return jsonify([])
+        
+        if mapper.ingredients_db is None:
+            return jsonify([])
+        
+        # Escape special regex characters
+        import re
+        escaped_query = re.escape(query)
+        
+        # Search in ingredient names
+        matches = mapper.ingredients_db[
+            mapper.ingredients_db['name'].str.lower().str.contains(escaped_query, na=False, regex=True)
+        ].head(20)
+        
+        return jsonify([{
+            'id': row['ingredient_id'],
+            'name': row['name']
+        } for _, row in matches.iterrows()])
+        
+    except Exception as e:
+        app.logger.error(f"Search error: {str(e)}")
+        return jsonify({'error': 'Search failed'}), 500
 
 @app.route('/api/settings', methods=['GET', 'POST'])
 def settings():

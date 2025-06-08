@@ -2784,8 +2784,14 @@
             console.log('=======================');
         }
 
-        // Call network analysis on page load
+        // Call network analysis on page load and DOMContentLoaded
         window.addEventListener('load', logNetworkAnalysis);
+        document.addEventListener('DOMContentLoaded', logNetworkAnalysis);
+        
+        // Also call it immediately if page is already loaded
+        if (document.readyState === 'complete') {
+            logNetworkAnalysis();
+        }
 
         // Immediate UI feedback for mapping operations
         function showImmediateMappingFeedback(ingredient, action, targetIngredient, count = 1) {
