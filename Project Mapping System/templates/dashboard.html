@@ -540,7 +540,7 @@
     <script>
         // Global state
         let currentMappingIngredient = null;
-        let selectedIngredientId = null;
+        window.selectedIngredientId = null;
         let eventSource = null;
         let autoScroll = true;
         
@@ -1228,7 +1228,7 @@
 
         async function openMappingModal(ingredient, productName = null, prefill = null) {
             currentMappingIngredient = ingredient;
-            selectedIngredientId = null;
+            window.selectedIngredientId = null;
             
             // Check if this is a remapping operation
             const isRemapping = window.remappingIngredient && window.remappingIngredient.ingredient === ingredient;
@@ -1292,15 +1292,20 @@
             document.getElementById('mapping-modal').classList.add('hidden');
             document.getElementById('mapping-modal').classList.remove('flex');
             currentMappingIngredient = null;
-            selectedIngredientId = null;
+            window.selectedIngredientId = null;
             document.getElementById('ingredient-search').value = '';
             document.getElementById('search-results').innerHTML = '';
             document.getElementById('search-results').classList.add('hidden');
+            document.getElementById('confirm-mapping').disabled = false;
             
             // Clear remapping state and reset modal title and button text
             window.remappingIngredient = null;
             document.querySelector('#mapping-modal h3').textContent = 'Manual Mapping';
             document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
+            
+            // Clear bulk mapping state
+            window.isBulkMapping = false;
+            window.currentBulkIngredient = null;
         }
 
         async function searchIngredients() {
@@ -1335,7 +1340,7 @@
         }
 
         function selectIngredient(id, name) {
-            selectedIngredientId = id;
+            window.selectedIngredientId = id;
             document.getElementById('ingredient-search').value = name;
             document.getElementById('search-results').classList.add('hidden');
             document.getElementById('confirm-mapping').disabled = false;
@@ -1349,7 +1354,7 @@
                 try {
                     const response = await axios.post('/api/manual-map', {
                         original_ingredient: window.batchMappingIngredients,
-                        ingredient_id: selectedIngredientId,
+                        ingredient_id: window.selectedIngredientId,
                         note: label
                     });
                     if (response.data.success) {
@@ -1367,7 +1372,7 @@
                 return;
             }
             
-            if (!currentMappingIngredient || !selectedIngredientId) return;
+            if (!currentMappingIngredient || !window.selectedIngredientId) return;
             
             // Check if this is a remapping operation
             const isRemapping = window.remappingIngredient && window.remappingIngredient.ingredient === currentMappingIngredient;
@@ -1378,7 +1383,7 @@
                     // Use remap endpoint for already mapped ingredients
                     response = await axios.post('/api/remap-ingredient', {
                         original_ingredient: currentMappingIngredient,
-                        new_ingredient_id: selectedIngredientId,
+                        new_ingredient_id: window.selectedIngredientId,
                         product_name: window.remappingIngredient.product,
                         note: label
                     });
@@ -1386,7 +1391,7 @@
                     // Use regular mapping endpoint for unmapped ingredients
                     response = await axios.post('/api/manual-map', {
                         original_ingredient: currentMappingIngredient,
-                        ingredient_id: selectedIngredientId,
+                        ingredient_id: window.selectedIngredientId,
                         note: label
                     });
                 }
@@ -2457,12 +2462,17 @@
             const ingredient = bulkIngredients.find(ing => ing.normalized_ingredient === normalizedIngredient);
             if (!ingredient) return;
             
+            // Reset state
+            window.selectedIngredientId = null;
+            currentMappingIngredient = null;
+            
             // Set up the modal for bulk mapping
             document.getElementById('modal-ingredient').textContent = `${ingredient.normalized_ingredient} (${ingredient.count} instances across ${ingredient.products.length} products)`;
             document.getElementById('ingredient-search').value = '';
             document.getElementById('search-results').classList.add('hidden');
             document.getElementById('mapping-label').value = 'Bulk Mapped';
             document.getElementById('confirm-mapping-text').textContent = 'Bulk Map All Instances';
+            document.getElementById('confirm-mapping').disabled = true; // Disable until ingredient is selected
             
             // Store the ingredient for bulk mapping
             window.currentBulkIngredient = normalizedIngredient;
@@ -2470,6 +2480,7 @@
             
             document.getElementById('mapping-modal').classList.remove('hidden');
             document.getElementById('mapping-modal').classList.add('flex');
+            document.getElementById('ingredient-search').focus();
         }
         
         function showIngredientInstances(normalizedIngredient) {
@@ -2559,10 +2570,14 @@
                     });
                     
                     hideLoading();
-                    document.getElementById('mapping-modal').classList.add('hidden');
-                    document.getElementById('mapping-modal').classList.remove('flex');
                     
                     showNotification(response.data.message || `Successfully bulk mapped ${response.data.mapped_count} instances`, 'success');
+                    
+                    // Add changelog entry
+                    addChangelogEntry(`Bulk mapped "${window.currentBulkIngredient}" (${response.data.mapped_count} instances)`, 'mapping');
+                    
+                    // Close modal and reset state
+                    closeModal();
                     
                     // Refresh the bulk ingredients list
                     document.getElementById('load-bulk-ingredients').click();
@@ -2573,17 +2588,16 @@
                     updateExportPreview();
                     updateDashboardProgress();
                     
-                    // Add changelog entry
-                    addChangelogEntry(`Bulk mapped "${window.currentBulkIngredient}" (${response.data.mapped_count} instances)`, 'mapping');
-                    
                 } catch (error) {
                     hideLoading();
                     showNotification('Error during bulk mapping: ' + error.message, 'error');
+                    
+                    // Reset bulk mapping state on error
+                    window.isBulkMapping = false;
+                    window.currentBulkIngredient = null;
+                    document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
+                    document.getElementById('confirm-mapping').disabled = false;
                 }
-                
-                // Reset bulk mapping state
-                window.isBulkMapping = false;
-                window.currentBulkIngredient = null;
             }
         });
         
@@ -2596,7 +2610,9 @@
         document.getElementById('cancel-mapping').addEventListener('click', function() {
             window.isBulkMapping = false;
             window.currentBulkIngredient = null;
+            window.selectedIngredientId = null;
             document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
+            document.getElementById('confirm-mapping').disabled = false;
         });
 
         // Performance improvement: Use optimized endpoint for single product refresh

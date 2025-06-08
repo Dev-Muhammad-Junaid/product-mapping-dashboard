@@ -1117,8 +1117,8 @@ def export_custom():
         if filename:
             if not filename.endswith('.csv'):
                 filename += '.csv'
-            else:
-                filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        else:
+            filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         
         # Create file in temp directory
         import tempfile
