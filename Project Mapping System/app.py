@@ -1117,7 +1117,7 @@ def export_custom():
         if filename:
             if not filename.endswith('.csv'):
                 filename += '.csv'
-        else:
+                else:
             filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         
         # Create file in temp directory
@@ -1214,6 +1214,165 @@ def add_ingredient():
     }
     mapper.unmapped_ingredients.append(new_row)
     return jsonify({'success': True, 'added': new_row})
+
+@app.route('/api/bulk-ingredients', methods=['GET'])
+def get_bulk_ingredients():
+    """Get ingredients grouped by their normalized name for bulk mapping"""
+    try:
+        # Group unmapped ingredients by normalized name
+        ingredient_groups = {}
+        
+        for item in mapper.unmapped_ingredients:
+            normalized = item.get('normalized_ingredient', '').lower().strip()
+            if not normalized:
+                continue
+                
+            if normalized not in ingredient_groups:
+                ingredient_groups[normalized] = {
+                    'normalized_ingredient': normalized,
+                    'original_ingredients': [],
+                    'products': set(),
+                    'count': 0,
+                    'suggested_mapping': None,
+                    'confidence': 0
+                }
+            
+            ingredient_groups[normalized]['original_ingredients'].append(item['original_ingredient'])
+            ingredient_groups[normalized]['products'].add(item.get('product_name', 'Unknown'))
+            ingredient_groups[normalized]['count'] += 1
+            
+            # Use the best suggested mapping from any of the instances
+            if item.get('matched_name') and item.get('confidence', 0) > ingredient_groups[normalized]['confidence']:
+                ingredient_groups[normalized]['suggested_mapping'] = item['matched_name']
+                ingredient_groups[normalized]['confidence'] = item.get('confidence', 0)
+        
+        # Convert to list and sort by count (most common first)
+        bulk_ingredients = []
+        for group in ingredient_groups.values():
+            group['products'] = list(group['products'])  # Convert set to list for JSON
+            bulk_ingredients.append(group)
+        
+        bulk_ingredients.sort(key=lambda x: x['count'], reverse=True)
+        
+        # Only return ingredients that appear in multiple products or multiple times
+        bulk_ingredients = [ing for ing in bulk_ingredients if ing['count'] > 1 or len(ing['products']) > 1]
+        
+        return jsonify({'bulk_ingredients': bulk_ingredients})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/bulk-map', methods=['POST'])
+def bulk_map_ingredient():
+    """Map all instances of a normalized ingredient to a target ingredient"""
+    try:
+        data = request.get_json()
+        normalized_ingredient = data.get('normalized_ingredient')
+        target_ingredient_id = data.get('target_ingredient_id')
+        note = data.get('note', 'Bulk Mapped')
+        
+        if not normalized_ingredient or not target_ingredient_id:
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Find the target ingredient in database
+        target_ingredient = mapper.ingredients_db[
+            mapper.ingredients_db['ingredient_id'] == target_ingredient_id
+        ]
+        if target_ingredient.empty:
+            return jsonify({'success': False, 'error': 'Target ingredient ID not found'}), 400
+        target_ingredient = target_ingredient.iloc[0]
+        
+        # Find all unmapped instances of this normalized ingredient
+        instances_to_map = []
+        for i, item in enumerate(mapper.unmapped_ingredients):
+            if item.get('normalized_ingredient', '').lower().strip() == normalized_ingredient.lower().strip():
+                instances_to_map.append((i, item))
+        
+        if not instances_to_map:
+            return jsonify({'success': False, 'error': 'No unmapped instances found for this ingredient'}), 400
+        
+        # Map all instances
+        mapped_count = 0
+        for i, item in reversed(instances_to_map):  # Reverse to maintain indices when removing
+            # Create mapped record
+            mapped_record = {
+                'product_name': item.get('product_name', ''),
+                'original_ingredient': item['original_ingredient'],
+                'normalized_ingredient': item['normalized_ingredient'],
+                'ingredient_id': target_ingredient_id,
+                'matched_name': target_ingredient['name'],
+                'status': 'mapped',
+                'confidence': 100,
+                'match_type': 'bulk_manual',
+                'mapping_source': 'manual',
+                'note': note,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # Add to mapped results
+            mapper.mapping_results.append(mapped_record)
+            
+            # Remove from unmapped ingredients
+            mapper.unmapped_ingredients.pop(i)
+            mapped_count += 1
+        
+        return jsonify({
+            'success': True, 
+            'mapped_count': mapped_count,
+            'message': f'Successfully bulk mapped {mapped_count} instances of "{normalized_ingredient}" to "{target_ingredient["name"]}"'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/product-status/<product_name>', methods=['GET'])
+def get_single_product_status(product_name):
+    """Get mapping status for a single product (optimized for post-remap refresh)"""
+    try:
+        import urllib.parse
+        product_name = urllib.parse.unquote(product_name)
+        
+        product_info = {
+            'product_name': product_name, 
+            'ingredients': [], 
+            'mapped': [], 
+            'unmapped': []
+        }
+        
+        # Get mapped ingredients for this product
+        for row in mapper.mapping_results:
+            if row.get('product_name') == product_name:
+                row_copy = row.copy()
+                row_copy['is_mapped'] = True
+                product_info['ingredients'].append(row_copy)
+                product_info['mapped'].append(row_copy)
+        
+        # Get unmapped ingredients for this product
+        for row in mapper.unmapped_ingredients:
+            if row.get('product_name') == product_name:
+                row_copy = row.copy()
+                row_copy['is_mapped'] = False
+                product_info['ingredients'].append(row_copy)
+                product_info['unmapped'].append(row_copy)
+        
+        # Calculate stats
+        total = len(product_info['ingredients'])
+        mapped = len(product_info['mapped'])
+        unmapped = len(product_info['unmapped'])
+        fully_mapped = unmapped == 0 and total > 0
+        
+        product_info['total_ingredients'] = total
+        product_info['mapped_count'] = mapped
+        product_info['unmapped_count'] = unmapped
+        product_info['fully_mapped'] = fully_mapped
+        
+        # Convert to JSON-serializable format
+        product_info = to_python_type(product_info)
+        
+        return jsonify({'product': product_info})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     import sys
