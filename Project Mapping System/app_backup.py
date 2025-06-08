@@ -1117,8 +1117,8 @@ def export_custom():
         if filename:
             if not filename.endswith('.csv'):
                 filename += '.csv'
-            else:
-                filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+                else:
+            filename = f'custom_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
         
         # Create file in temp directory
         import tempfile
@@ -1312,14 +1312,14 @@ def bulk_map_ingredient():
             # Add to mapped results
             mapper.mapping_results.append(mapped_record)
             
-            # Remove from unmapped
+            # Remove from unmapped ingredients
             mapper.unmapped_ingredients.pop(i)
             mapped_count += 1
         
         return jsonify({
             'success': True, 
             'mapped_count': mapped_count,
-            'message': f'Successfully mapped {mapped_count} instances of "{normalized_ingredient}" to "{target_ingredient["name"]}"'
+            'message': f'Successfully bulk mapped {mapped_count} instances of "{normalized_ingredient}" to "{target_ingredient["name"]}"'
         })
         
     except Exception as e:
@@ -1327,9 +1327,17 @@ def bulk_map_ingredient():
 
 @app.route('/api/product-status/<product_name>', methods=['GET'])
 def get_single_product_status(product_name):
-    """Get mapping status for a single product (optimized for performance)"""
+    """Get mapping status for a single product (optimized for post-remap refresh)"""
     try:
-        product_info = {'product_name': product_name, 'ingredients': [], 'mapped': [], 'unmapped': []}
+        import urllib.parse
+        product_name = urllib.parse.unquote(product_name)
+        
+        product_info = {
+            'product_name': product_name, 
+            'ingredients': [], 
+            'mapped': [], 
+            'unmapped': []
+        }
         
         # Get mapped ingredients for this product
         for row in mapper.mapping_results:
@@ -1347,20 +1355,21 @@ def get_single_product_status(product_name):
                 product_info['ingredients'].append(row_copy)
                 product_info['unmapped'].append(row_copy)
         
-        # Calculate summary stats
+        # Calculate stats
         total = len(product_info['ingredients'])
         mapped = len(product_info['mapped'])
         unmapped = len(product_info['unmapped'])
         fully_mapped = unmapped == 0 and total > 0
         
-        product_info.update({
-            'total_ingredients': total,
-            'mapped_count': mapped,
-            'unmapped_count': unmapped,
-            'fully_mapped': fully_mapped
-        })
+        product_info['total_ingredients'] = total
+        product_info['mapped_count'] = mapped
+        product_info['unmapped_count'] = unmapped
+        product_info['fully_mapped'] = fully_mapped
         
-        return jsonify({'product': to_python_type(product_info)})
+        # Convert to JSON-serializable format
+        product_info = to_python_type(product_info)
+        
+        return jsonify({'product': product_info})
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

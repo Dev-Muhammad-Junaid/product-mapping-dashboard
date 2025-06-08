@@ -129,6 +129,9 @@
                     <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="unmapped">
                         Unmapped Ingredients
                     </a>
+                    <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="bulk-mapping">
+                        Bulk Mapping
+                    </a>
                     <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="export-preview">
                         Export Preview
                     </a>
@@ -269,6 +272,67 @@
                             </tbody>
                         </table>
                         <div id="product-unmapped-pagination" class="flex justify-between items-center mt-4"></div>
+                    </div>
+                </div>
+
+                <!-- Bulk Mapping Tab -->
+                <div id="bulk-mapping-tab" class="tab-content hidden">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Bulk Ingredient Mapping</h3>
+                        <p class="text-gray-600 text-sm mb-4">Map multiple instances of the same ingredient across different products at once. This is useful for ingredients that appear frequently across your product catalog.</p>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-blue-800">How Bulk Mapping Works</h4>
+                                    <p class="text-sm text-blue-700 mt-1">
+                                        Ingredients are grouped by their normalized names. When you map one group, all instances of that ingredient across all products will be mapped to the same target ingredient.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button id="load-bulk-ingredients" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 mb-4">
+                            Load Bulk Mapping Candidates
+                        </button>
+                    </div>
+
+                    <div id="bulk-ingredients-container" class="hidden">
+                        <div class="mb-4 flex justify-between items-center">
+                            <div>
+                                <span class="text-sm text-gray-600">Found <span id="bulk-ingredients-count" class="font-medium">0</span> ingredient groups for bulk mapping</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700">Sort by:</label>
+                                <select id="bulk-sort" class="border rounded px-2 py-1 text-sm">
+                                    <option value="count">Frequency (High to Low)</option>
+                                    <option value="name">Ingredient Name (A-Z)</option>
+                                    <option value="products">Product Count</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingredient</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instances</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Match</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bulk-ingredients-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Bulk ingredients will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -1338,8 +1402,8 @@
                     
                     // Refresh displays
                     await loadResults(); // Refresh results table
-                    if (window.refreshExpandedProductRow && productName) {
-                        window.refreshExpandedProductRow(productName);
+                    if (productName) {
+                        await refreshExpandedProductRow(productName);
                     } else {
                         populateProductUnmappedTable();
                     }
@@ -2284,6 +2348,295 @@
             }).catch(err => showNotification('Error updating label: ' + err.message, 'error'));
           }
         });
+
+        // Bulk Mapping Functionality
+        let bulkIngredients = [];
+        
+        document.getElementById('load-bulk-ingredients').addEventListener('click', async function() {
+            try {
+                showLoading('Loading bulk mapping candidates...');
+                const response = await axios.get('/api/bulk-ingredients');
+                bulkIngredients = response.data.bulk_ingredients || [];
+                
+                document.getElementById('bulk-ingredients-count').textContent = bulkIngredients.length;
+                document.getElementById('bulk-ingredients-container').classList.remove('hidden');
+                
+                populateBulkIngredientsTable();
+                hideLoading();
+                
+                if (bulkIngredients.length === 0) {
+                    showNotification('No ingredients found for bulk mapping. All ingredients may already be mapped or appear only once.', 'info');
+                }
+            } catch (error) {
+                hideLoading();
+                showNotification('Error loading bulk ingredients: ' + error.message, 'error');
+            }
+        });
+        
+        function populateBulkIngredientsTable() {
+            const tbody = document.getElementById('bulk-ingredients-table');
+            tbody.innerHTML = '';
+            
+            // Sort ingredients based on selected option
+            const sortBy = document.getElementById('bulk-sort').value;
+            const sortedIngredients = [...bulkIngredients].sort((a, b) => {
+                switch (sortBy) {
+                    case 'count':
+                        return b.count - a.count;
+                    case 'name':
+                        return a.normalized_ingredient.localeCompare(b.normalized_ingredient);
+                    case 'products':
+                        return b.products.length - a.products.length;
+                    default:
+                        return b.count - a.count;
+                }
+            });
+            
+            sortedIngredients.forEach(ingredient => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                const suggestedMatch = ingredient.suggested_mapping 
+                    ? `<span class="text-green-600 font-medium">${ingredient.suggested_mapping}</span> <span class="text-xs text-gray-500">(${ingredient.confidence}%)</span>`
+                    : '<span class="text-gray-400">No suggestion</span>';
+                
+                const productsList = ingredient.products.length > 3 
+                    ? ingredient.products.slice(0, 3).join(', ') + ` (+${ingredient.products.length - 3} more)`
+                    : ingredient.products.join(', ');
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${ingredient.normalized_ingredient}</div>
+                        <div class="text-xs text-gray-500">Original forms: ${ingredient.original_ingredients.slice(0, 2).join(', ')}${ingredient.original_ingredients.length > 2 ? '...' : ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ${ingredient.count} instances
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${ingredient.products.length} products</div>
+                        <div class="text-xs text-gray-500" title="${ingredient.products.join(', ')}">${productsList}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${suggestedMatch}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="bulk-map-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs mr-2" 
+                                data-ingredient="${encodeURIComponent(ingredient.normalized_ingredient)}">
+                            Bulk Map
+                        </button>
+                        <button class="view-instances-btn text-blue-600 hover:text-blue-800 text-xs" 
+                                data-ingredient="${encodeURIComponent(ingredient.normalized_ingredient)}">
+                            View Instances
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            // Add event listeners for bulk mapping buttons
+            document.querySelectorAll('.bulk-map-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const normalizedIngredient = decodeURIComponent(this.getAttribute('data-ingredient'));
+                    openBulkMappingModal(normalizedIngredient);
+                });
+            });
+            
+            // Add event listeners for view instances buttons
+            document.querySelectorAll('.view-instances-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const normalizedIngredient = decodeURIComponent(this.getAttribute('data-ingredient'));
+                    showIngredientInstances(normalizedIngredient);
+                });
+            });
+        }
+        
+        function openBulkMappingModal(normalizedIngredient) {
+            const ingredient = bulkIngredients.find(ing => ing.normalized_ingredient === normalizedIngredient);
+            if (!ingredient) return;
+            
+            // Set up the modal for bulk mapping
+            document.getElementById('modal-ingredient').textContent = `${ingredient.normalized_ingredient} (${ingredient.count} instances across ${ingredient.products.length} products)`;
+            document.getElementById('ingredient-search').value = '';
+            document.getElementById('search-results').classList.add('hidden');
+            document.getElementById('mapping-label').value = 'Bulk Mapped';
+            document.getElementById('confirm-mapping-text').textContent = 'Bulk Map All Instances';
+            
+            // Store the ingredient for bulk mapping
+            window.currentBulkIngredient = normalizedIngredient;
+            window.isBulkMapping = true;
+            
+            document.getElementById('mapping-modal').classList.remove('hidden');
+            document.getElementById('mapping-modal').classList.add('flex');
+        }
+        
+        function showIngredientInstances(normalizedIngredient) {
+            const ingredient = bulkIngredients.find(ing => ing.normalized_ingredient === normalizedIngredient);
+            if (!ingredient) return;
+            
+            let instancesHtml = `
+                <div class="mb-4">
+                    <h4 class="text-lg font-medium text-gray-800 mb-2">Instances of "${ingredient.normalized_ingredient}"</h4>
+                    <p class="text-sm text-gray-600 mb-4">${ingredient.count} instances across ${ingredient.products.length} products</p>
+                </div>
+                <div class="max-h-96 overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Original Form</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+            `;
+            
+            // Group by product for better display
+            const byProduct = {};
+            ingredient.original_ingredients.forEach((orig, index) => {
+                const product = ingredient.products[index % ingredient.products.length];
+                if (!byProduct[product]) byProduct[product] = [];
+                byProduct[product].push(orig);
+            });
+            
+            Object.entries(byProduct).forEach(([product, originals]) => {
+                originals.forEach(original => {
+                    instancesHtml += `
+                        <tr>
+                            <td class="px-4 py-2 text-sm text-gray-900">${product}</td>
+                            <td class="px-4 py-2 text-sm text-gray-600">${original}</td>
+                        </tr>
+                    `;
+                });
+            });
+            
+            instancesHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // Show in a simple alert for now (could be enhanced with a proper modal)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = instancesHtml;
+            
+            // Create a simple modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
+                    ${instancesHtml}
+                    <div class="mt-4 text-right">
+                        <button class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded" onclick="this.closest('.fixed').remove()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        // Handle bulk mapping in the existing mapping modal
+        document.getElementById('confirm-mapping').addEventListener('click', async function() {
+            if (window.isBulkMapping && window.currentBulkIngredient) {
+                // Handle bulk mapping
+                const selectedIngredient = window.selectedIngredientId;
+                const note = document.getElementById('mapping-label').value || 'Bulk Mapped';
+                
+                if (!selectedIngredient) {
+                    showNotification('Please select an ingredient to map to', 'error');
+                    return;
+                }
+                
+                try {
+                    showLoading('Bulk mapping ingredient...');
+                    const response = await axios.post('/api/bulk-map', {
+                        normalized_ingredient: window.currentBulkIngredient,
+                        target_ingredient_id: selectedIngredient,
+                        note: note
+                    });
+                    
+                    hideLoading();
+                    document.getElementById('mapping-modal').classList.add('hidden');
+                    document.getElementById('mapping-modal').classList.remove('flex');
+                    
+                    showNotification(response.data.message || `Successfully bulk mapped ${response.data.mapped_count} instances`, 'success');
+                    
+                    // Refresh the bulk ingredients list
+                    document.getElementById('load-bulk-ingredients').click();
+                    
+                    // Update other views
+                    loadResults();
+                    populateProductUnmappedTable();
+                    updateExportPreview();
+                    updateDashboardProgress();
+                    
+                    // Add changelog entry
+                    addChangelogEntry(`Bulk mapped "${window.currentBulkIngredient}" (${response.data.mapped_count} instances)`, 'mapping');
+                    
+                } catch (error) {
+                    hideLoading();
+                    showNotification('Error during bulk mapping: ' + error.message, 'error');
+                }
+                
+                // Reset bulk mapping state
+                window.isBulkMapping = false;
+                window.currentBulkIngredient = null;
+            }
+        });
+        
+        // Handle sort change for bulk ingredients
+        document.getElementById('bulk-sort').addEventListener('change', function() {
+            populateBulkIngredientsTable();
+        });
+        
+        // Reset bulk mapping state when modal is cancelled
+        document.getElementById('cancel-mapping').addEventListener('click', function() {
+            window.isBulkMapping = false;
+            window.currentBulkIngredient = null;
+            document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
+        });
+
+        // Performance improvement: Use optimized endpoint for single product refresh
+        async function refreshExpandedProductRow(productName) {
+            try {
+                const response = await axios.get(`/api/product-status/${encodeURIComponent(productName)}`);
+                const product = response.data.product;
+                
+                // Update the specific product row instead of reloading everything
+                const existingRow = document.querySelector(`tr[data-product="${encodeURIComponent(productName)}"]`);
+                if (existingRow) {
+                    // Update the progress and status in the existing row
+                    const progressCell = existingRow.querySelector('.progress-cell');
+                    const statusCell = existingRow.querySelector('.status-cell');
+                    
+                    if (progressCell) {
+                        progressCell.innerHTML = `${product.mapped_count}/${product.total_ingredients}`;
+                    }
+                    
+                    if (statusCell) {
+                        const statusClass = product.fully_mapped ? 'bg-green-100 text-green-800' : 
+                                          product.mapped_count > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+                        const statusText = product.fully_mapped ? 'Complete' : 
+                                         product.mapped_count > 0 ? 'Partial' : 'Unmapped';
+                        statusCell.innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">${statusText}</span>`;
+                    }
+                }
+                
+                // If the product is expanded, refresh its details
+                const expandedRow = document.querySelector(`tr[data-expanded-product="${encodeURIComponent(productName)}"]`);
+                if (expandedRow) {
+                    await populateExpandedProductDetails(productName, expandedRow.querySelector('.expanded-content'));
+                }
+                
+            } catch (error) {
+                console.error('Error refreshing product row:', error);
+                // Fallback to full refresh if optimized refresh fails
+                populateProductUnmappedTable();
+            }
+        }
     </script>
 </body>
 </html> 
