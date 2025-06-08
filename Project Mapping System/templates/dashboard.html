@@ -1358,11 +1358,49 @@
                         note: label
                     });
                     if (response.data.success) {
-                        showNotification('Batch mapping completed!', 'success');
-                        addChangelogEntry(`Batch mapped ${window.batchMappingIngredients.length} ingredients`, 'batch-mapping');
-                        await loadResults();
+                        // Get data before clearing
+                        const batchCount = window.batchMappingIngredients.length;
+                        const targetIngredientName = document.getElementById('ingredient-search').value;
+                        
+                        // Show immediate UI feedback before heavy operations
+                        showImmediateMappingFeedback(window.batchMappingIngredients, 'mapped', targetIngredientName, batchCount);
+                        
+                        // Close modal immediately for better UX
                         closeModal();
                         window.batchMappingIngredients = null;
+                        
+                        // Show immediate success feedback
+                        showNotification('Batch mapping completed!', 'success');
+                        addChangelogEntry(`Batch mapped ${batchCount} ingredients`, 'batch-mapping');
+                        
+                        // Perform updates asynchronously in background
+                        (async () => {
+                            try {
+                                // Show subtle progress indicator
+                                const progressEl = document.createElement('div');
+                                progressEl.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-3 py-1 rounded text-sm z-40';
+                                progressEl.textContent = 'Refreshing data...';
+                                document.body.appendChild(progressEl);
+                                
+                                const updates = [
+                                    loadResults(),
+                                    populateProductUnmappedTable(),
+                                    updateExportPreview()
+                                    // Note: updateDashboardProgress() handled by immediate feedback
+                                ];
+                                await Promise.allSettled(updates);
+                                
+                                // Remove progress indicator
+                                if (progressEl.parentNode) {
+                                    progressEl.parentNode.removeChild(progressEl);
+                                }
+                            } catch (error) {
+                                console.error('Background update error:', error);
+                                // Remove progress indicator on error too
+                                const progressEl = document.querySelector('.fixed.bottom-4.right-4');
+                                if (progressEl) progressEl.remove();
+                            }
+                        })();
                     } else {
                         showNotification('Batch mapping failed: ' + response.data.error, 'error');
                     }
@@ -1398,25 +1436,64 @@
                 
                 if (response.data.success) {
                     const action = isRemapping ? 'remapped' : 'mapped';
+                    const productName = document.getElementById('modal-ingredient').textContent.split(' (Product: ')[1]?.replace(')','');
+                    const oldMatch = isRemapping ? ` (was: ${window.remappingIngredient.currentMatch})` : '';
+                    
+                    // Get target ingredient name for immediate feedback
+                    const targetIngredientName = document.getElementById('ingredient-search').value;
+                    
+                    // Close modal immediately for better UX
+                    closeModal();
+                    
+                    // Show immediate UI feedback before heavy operations
+                    showImmediateMappingFeedback(currentMappingIngredient, action, targetIngredientName);
+                    
+                    // Show immediate success feedback
                     showNotification(`Ingredient ${action} successfully!`, 'success');
                     
                     // Add changelog entry
-                    const productName = document.getElementById('modal-ingredient').textContent.split(' (Product: ')[1]?.replace(')','');
-                    const oldMatch = isRemapping ? ` (was: ${window.remappingIngredient.currentMatch})` : '';
                     addChangelogEntry(`${action.charAt(0).toUpperCase() + action.slice(1)} ingredient: ${currentMappingIngredient}${oldMatch}${productName ? ` in ${productName}` : ''}`, 'mapping');
-                    
-                    // Refresh displays
-                    await loadResults(); // Refresh results table
-                    if (productName) {
-                        await refreshExpandedProductRow(productName);
-                    } else {
-                        populateProductUnmappedTable();
-                    }
-                    updateExportPreview();
-                    closeModal();
                     
                     // Clear remapping state
                     window.remappingIngredient = null;
+                    
+                    // Perform updates asynchronously in background for better performance
+                    (async () => {
+                        try {
+                            // Show subtle progress indicator
+                            const progressEl = document.createElement('div');
+                            progressEl.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-3 py-1 rounded text-sm z-40';
+                            progressEl.textContent = 'Refreshing data...';
+                            document.body.appendChild(progressEl);
+                            
+                            // Use optimized refresh for specific product if available
+                            if (productName) {
+                                await refreshExpandedProductRow(productName);
+                            } else {
+                                // For unmapped ingredients, do a quick targeted update
+                                populateProductUnmappedTable();
+                            }
+                            
+                            // Update other displays in parallel
+                            const updates = [
+                                loadResults(),
+                                updateExportPreview()
+                                // Note: updateDashboardProgress() removed - already optimistically updated
+                            ];
+                            
+                            await Promise.allSettled(updates);
+                            
+                            // Remove progress indicator
+                            if (progressEl.parentNode) {
+                                progressEl.parentNode.removeChild(progressEl);
+                            }
+                        } catch (error) {
+                            console.error('Background update error:', error);
+                            // Remove progress indicator on error too
+                            const progressEl = document.querySelector('.fixed.bottom-4.right-4');
+                            if (progressEl) progressEl.remove();
+                        }
+                    })();
                 } else {
                     const action = isRemapping ? 'remapping' : 'mapping';
                     showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)} failed: ` + response.data.error, 'error');
@@ -2614,6 +2691,46 @@
             document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
             document.getElementById('confirm-mapping').disabled = false;
         });
+
+        // Immediate UI feedback for mapping operations
+        function showImmediateMappingFeedback(ingredient, action, targetIngredient, count = 1) {
+            // Handle both single ingredient and bulk ingredients
+            const ingredients = Array.isArray(ingredient) ? ingredient : [ingredient];
+            
+            // Find and update the ingredient rows in results table immediately
+            const resultsTable = document.querySelector('#results-table tbody');
+            if (resultsTable) {
+                const rows = resultsTable.querySelectorAll('tr');
+                ingredients.forEach(ing => {
+                    rows.forEach(row => {
+                        const ingredientCell = row.querySelector('td:first-child');
+                        if (ingredientCell && ingredientCell.textContent.trim() === ing) {
+                            const statusCell = row.querySelector('td:nth-child(4)'); // Status column
+                            if (statusCell) {
+                                statusCell.innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Mapped</span>`;
+                            }
+                            const matchCell = row.querySelector('td:nth-child(3)'); // Match column
+                            if (matchCell && targetIngredient) {
+                                matchCell.textContent = targetIngredient;
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Update dashboard stats immediately (optimistic update)
+            const mappedCountEl = document.getElementById('mapped-count');
+            const unmappedCountEl = document.getElementById('unmapped-count');
+            if (mappedCountEl && unmappedCountEl) {
+                const currentMapped = parseInt(mappedCountEl.textContent) || 0;
+                const currentUnmapped = parseInt(unmappedCountEl.textContent) || 0;
+                
+                if (action === 'mapped' && currentUnmapped >= count) {
+                    mappedCountEl.textContent = currentMapped + count;
+                    unmappedCountEl.textContent = currentUnmapped - count;
+                }
+            }
+        }
 
         // Performance improvement: Use optimized endpoint for single product refresh
         async function refreshExpandedProductRow(productName) {
