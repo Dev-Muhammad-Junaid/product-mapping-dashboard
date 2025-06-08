@@ -1233,24 +1233,46 @@
             // Check if this is a remapping operation
             const isRemapping = window.remappingIngredient && window.remappingIngredient.ingredient === ingredient;
             const modalTitle = isRemapping ? 'Remap Ingredient' : 'Manual Mapping';
-            document.querySelector('#mapping-modal h3').textContent = modalTitle;
             
-            // Update button text
-            const confirmButtonText = isRemapping ? 'Remap Ingredient' : 'Map Ingredient';
-            document.getElementById('confirm-mapping-text').textContent = confirmButtonText;
-            
-            document.getElementById('modal-ingredient').textContent = ingredient + (productName ? ` (Product: ${productName})` : '');
-            if (isRemapping) {
-                document.getElementById('modal-ingredient').textContent += ` - Currently mapped to: ${window.remappingIngredient.currentMatch}`;
+            // Update modal title with null check
+            const modalTitleEl = document.querySelector('#mapping-modal h3');
+            if (modalTitleEl) {
+                modalTitleEl.textContent = modalTitle;
             }
             
-            document.getElementById('mapping-modal').classList.remove('hidden');
-            document.getElementById('mapping-modal').classList.add('flex');
-            document.getElementById('ingredient-search').value = prefill || '';
-            document.getElementById('ingredient-search').focus();
-            document.getElementById('mapping-label').value = '';
-            if (prefill && ['New Ingredient','User Mapped','Incorrect Format'].includes(prefill)) {
-                document.getElementById('mapping-label').value = prefill;
+            // Update button text with null check
+            const confirmButtonText = isRemapping ? 'Remap Ingredient' : 'Map Ingredient';
+            const confirmMappingText = document.getElementById('confirm-mapping-text');
+            if (confirmMappingText) {
+                confirmMappingText.textContent = confirmButtonText;
+            }
+            
+            const modalIngredient = document.getElementById('modal-ingredient');
+            if (modalIngredient) {
+                modalIngredient.textContent = ingredient + (productName ? ` (Product: ${productName})` : '');
+                if (isRemapping) {
+                    modalIngredient.textContent += ` - Currently mapped to: ${window.remappingIngredient.currentMatch}`;
+                }
+            }
+            
+            const mappingModal = document.getElementById('mapping-modal');
+            if (mappingModal) {
+                mappingModal.classList.remove('hidden');
+                mappingModal.classList.add('flex');
+            }
+            
+            const ingredientSearch = document.getElementById('ingredient-search');
+            if (ingredientSearch) {
+                ingredientSearch.value = prefill || '';
+                ingredientSearch.focus();
+            }
+            
+            const mappingLabel = document.getElementById('mapping-label');
+            if (mappingLabel) {
+                mappingLabel.value = '';
+                if (prefill && ['New Ingredient','User Mapped','Incorrect Format'].includes(prefill)) {
+                    mappingLabel.value = prefill;
+                }
             }
             
             // If prefill is provided and it's not a label value, automatically search and select best match
@@ -2606,21 +2628,45 @@
             window.selectedIngredientId = null;
             currentMappingIngredient = null;
             
-            // Set up the modal for bulk mapping
-            document.getElementById('modal-ingredient').textContent = `${ingredient.normalized_ingredient} (${ingredient.count} instances across ${ingredient.products.length} products)`;
-            document.getElementById('ingredient-search').value = '';
-            document.getElementById('search-results').classList.add('hidden');
-            document.getElementById('mapping-label').value = 'Bulk Mapped';
-            document.getElementById('confirm-mapping-text').textContent = 'Bulk Map All Instances';
-            document.getElementById('confirm-mapping').disabled = true; // Disable until ingredient is selected
+            // Set up the modal for bulk mapping with null checks
+            const modalIngredient = document.getElementById('modal-ingredient');
+            const ingredientSearch = document.getElementById('ingredient-search');
+            const searchResults = document.getElementById('search-results');
+            const mappingLabel = document.getElementById('mapping-label');
+            const confirmMappingText = document.getElementById('confirm-mapping-text');
+            const confirmMapping = document.getElementById('confirm-mapping');
+            const mappingModal = document.getElementById('mapping-modal');
+            
+            if (modalIngredient) {
+                modalIngredient.textContent = `${ingredient.normalized_ingredient} (${ingredient.count} instances across ${ingredient.products.length} products)`;
+            }
+            if (ingredientSearch) {
+                ingredientSearch.value = '';
+            }
+            if (searchResults) {
+                searchResults.classList.add('hidden');
+            }
+            if (mappingLabel) {
+                mappingLabel.value = 'Bulk Mapped';
+            }
+            if (confirmMappingText) {
+                confirmMappingText.textContent = 'Bulk Map All Instances';
+            }
+            if (confirmMapping) {
+                confirmMapping.disabled = true; // Disable until ingredient is selected
+            }
             
             // Store the ingredient for bulk mapping
             window.currentBulkIngredient = normalizedIngredient;
             window.isBulkMapping = true;
             
-            document.getElementById('mapping-modal').classList.remove('hidden');
-            document.getElementById('mapping-modal').classList.add('flex');
-            document.getElementById('ingredient-search').focus();
+            if (mappingModal) {
+                mappingModal.classList.remove('hidden');
+                mappingModal.classList.add('flex');
+            }
+            if (ingredientSearch) {
+                ingredientSearch.focus();
+            }
         }
         
         function showIngredientInstances(normalizedIngredient) {
