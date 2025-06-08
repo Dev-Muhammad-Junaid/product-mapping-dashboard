@@ -1468,6 +1468,89 @@
                 }
                 return;
             }
+
+            // Handle new bulk mapping (from bulk mapping tab)
+            if (window.isBulkMapping && window.currentBulkIngredient) {
+                try {
+                    const bulkStartTime = performance.now();
+                    
+                    const response = await Promise.race([
+                        axios.post('/api/bulk-map', {
+                            normalized_ingredient: window.currentBulkIngredient,
+                            target_ingredient_id: window.selectedIngredientId,
+                            note: label
+                        }),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timeout')), 10000)
+                        )
+                    ]);
+                    
+                    if (response.data.success) {
+                        // Log bulk mapping performance
+                        const bulkDuration = performance.now() - bulkStartTime;
+                        console.log(`🕐 Bulk mapping API call took ${bulkDuration.toFixed(0)}ms for bulk ingredient "${window.currentBulkIngredient}"`);
+                        
+                        if (bulkDuration > 2000) {
+                            console.warn(`⚠️ Slow bulk mapping detected: ${bulkDuration.toFixed(0)}ms`);
+                        }
+                        
+                        const targetIngredientName = document.getElementById('ingredient-search').value;
+                        
+                        // Close modal immediately for better UX
+                        closeModal();
+                        
+                        // Show immediate success feedback
+                        showNotification(response.data.message || `Successfully bulk mapped ${response.data.mapped_count} instances`, 'success');
+                        
+                        // Add changelog entry
+                        addChangelogEntry(`Bulk mapped "${window.currentBulkIngredient}" (${response.data.mapped_count} instances)`, 'mapping');
+                        
+                        // Perform updates asynchronously in background
+                        (async () => {
+                            try {
+                                // Show subtle progress indicator
+                                const progressEl = document.createElement('div');
+                                progressEl.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-3 py-1 rounded text-sm z-40';
+                                progressEl.textContent = 'Refreshing data...';
+                                document.body.appendChild(progressEl);
+                                
+                                const updates = [
+                                    loadResults(),
+                                    populateProductUnmappedTable(),
+                                    updateExportPreview()
+                                ];
+                                await Promise.allSettled(updates);
+                                
+                                // Refresh the bulk ingredients list
+                                const loadBulkBtn = document.getElementById('load-bulk-ingredients');
+                                if (loadBulkBtn) {
+                                    loadBulkBtn.click();
+                                }
+                                
+                                // Remove progress indicator
+                                if (progressEl.parentNode) {
+                                    progressEl.parentNode.removeChild(progressEl);
+                                }
+                            } catch (error) {
+                                console.error('Background update error:', error);
+                                // Remove progress indicator on error too
+                                const progressEl = document.querySelector('.fixed.bottom-4.right-4');
+                                if (progressEl) progressEl.remove();
+                            }
+                        })();
+                    } else {
+                        showNotification('Bulk mapping failed: ' + response.data.error, 'error');
+                        resetButton();
+                    }
+                } catch (error) {
+                    const errorMsg = error.message === 'Request timeout' ? 
+                        'Bulk mapping timed out. Please try again.' : 
+                        'Error during bulk mapping: ' + error.message;
+                    showNotification(errorMsg, 'error');
+                    resetButton();
+                }
+                return;
+            }
             
             if (!currentMappingIngredient || !window.selectedIngredientId) return;
             
@@ -2735,71 +2818,36 @@
             document.body.appendChild(modal);
         }
         
-        // Handle bulk mapping in the existing mapping modal
-        document.getElementById('confirm-mapping').addEventListener('click', async function() {
-            if (window.isBulkMapping && window.currentBulkIngredient) {
-                // Handle bulk mapping
-                const selectedIngredient = window.selectedIngredientId;
-                const note = document.getElementById('mapping-label').value || 'Bulk Mapped';
-                
-                if (!selectedIngredient) {
-                    showNotification('Please select an ingredient to map to', 'error');
-                    return;
-                }
-                
-                try {
-                    showLoading('Bulk mapping ingredient...');
-                    const response = await axios.post('/api/bulk-map', {
-                        normalized_ingredient: window.currentBulkIngredient,
-                        target_ingredient_id: selectedIngredient,
-                        note: note
-                    });
-                    
-                    hideLoading();
-                    
-                    showNotification(response.data.message || `Successfully bulk mapped ${response.data.mapped_count} instances`, 'success');
-                    
-                    // Add changelog entry
-                    addChangelogEntry(`Bulk mapped "${window.currentBulkIngredient}" (${response.data.mapped_count} instances)`, 'mapping');
-                    
-                    // Close modal and reset state
-                    closeModal();
-                    
-                    // Refresh the bulk ingredients list
-                    document.getElementById('load-bulk-ingredients').click();
-                    
-                    // Update other views
-                    loadResults();
-                    populateProductUnmappedTable();
-                    updateExportPreview();
-                    updateDashboardProgress();
-                    
-                } catch (error) {
-                    hideLoading();
-                    showNotification('Error during bulk mapping: ' + error.message, 'error');
-                    
-                    // Reset bulk mapping state on error
-                    window.isBulkMapping = false;
-                    window.currentBulkIngredient = null;
-                    document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
-                    document.getElementById('confirm-mapping').disabled = false;
-                }
-            }
-        });
+        // NOTE: Bulk mapping is now handled in the main confirmMapping() function
+        // This duplicate event listener was causing conflicts and has been removed
         
         // Handle sort change for bulk ingredients
-        document.getElementById('bulk-sort').addEventListener('change', function() {
-            populateBulkIngredientsTable();
-        });
+        const bulkSortSelect = document.getElementById('bulk-sort');
+        if (bulkSortSelect) {
+            bulkSortSelect.addEventListener('change', function() {
+                populateBulkIngredientsTable();
+            });
+        }
         
         // Reset bulk mapping state when modal is cancelled
-        document.getElementById('cancel-mapping').addEventListener('click', function() {
-            window.isBulkMapping = false;
-            window.currentBulkIngredient = null;
-            window.selectedIngredientId = null;
-            document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
-            document.getElementById('confirm-mapping').disabled = false;
-        });
+        const cancelMappingBtn = document.getElementById('cancel-mapping');
+        if (cancelMappingBtn) {
+            cancelMappingBtn.addEventListener('click', function() {
+                window.isBulkMapping = false;
+                window.currentBulkIngredient = null;
+                window.selectedIngredientId = null;
+                
+                const confirmMappingText = document.getElementById('confirm-mapping-text');
+                if (confirmMappingText) {
+                    confirmMappingText.textContent = 'Map Ingredient';
+                }
+                
+                const confirmMapping = document.getElementById('confirm-mapping');
+                if (confirmMapping) {
+                    confirmMapping.disabled = false;
+                }
+            });
+        }
 
         // Network analysis logging for debugging
         function logNetworkAnalysis() {
