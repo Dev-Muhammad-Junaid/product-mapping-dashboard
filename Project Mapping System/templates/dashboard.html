@@ -1347,17 +1347,49 @@
         }
 
         async function confirmMapping() {
+            const confirmBtn = document.getElementById('confirm-mapping');
+            const originalBtnHtml = confirmBtn.innerHTML;
+            
+            // Prevent double submissions and show loading state
+            if (confirmBtn.disabled) return;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="flex items-center"><svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Processing...</span>';
+            confirmBtn.className = confirmBtn.className.replace('bg-blue-500 hover:bg-blue-600', 'bg-gray-400 cursor-not-allowed');
+            
             const label = document.getElementById('mapping-label').value;
             
+            // Helper function to reset button state
+            const resetButton = () => {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalBtnHtml;
+                confirmBtn.className = confirmBtn.className.replace('bg-gray-400 cursor-not-allowed', 'bg-blue-500 hover:bg-blue-600');
+            };
+
             // Handle batch mapping
             if (window.batchMappingIngredients && window.batchMappingIngredients.length > 0) {
                 try {
-                    const response = await axios.post('/api/manual-map', {
-                        original_ingredient: window.batchMappingIngredients,
-                        ingredient_id: window.selectedIngredientId,
-                        note: label
-                    });
+                    const batchStartTime = performance.now();
+                    
+                    // Add timeout to API call
+                    const response = await Promise.race([
+                        axios.post('/api/manual-map', {
+                            original_ingredient: window.batchMappingIngredients,
+                            ingredient_id: window.selectedIngredientId,
+                            note: label
+                        }),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timeout')), 10000)
+                        )
+                    ]);
                     if (response.data.success) {
+                        // Log batch mapping performance
+                        const batchDuration = performance.now() - batchStartTime;
+                        console.log(`🕐 Batch mapping API call took ${batchDuration.toFixed(0)}ms for ${window.batchMappingIngredients.length} ingredients`);
+                        
+                        if (batchDuration > 2000) {
+                            console.warn(`⚠️ Slow batch mapping detected: ${batchDuration.toFixed(0)}ms`);
+                        }
+                        
                         // Get data before clearing
                         const batchCount = window.batchMappingIngredients.length;
                         const targetIngredientName = document.getElementById('ingredient-search').value;
@@ -1403,9 +1435,14 @@
                         })();
                     } else {
                         showNotification('Batch mapping failed: ' + response.data.error, 'error');
+                        resetButton();
                     }
                 } catch (error) {
-                    showNotification('Error in batch mapping: ' + error.message, 'error');
+                    const errorMsg = error.message === 'Request timeout' ? 
+                        'Batch mapping timed out. Please try again.' : 
+                        'Error in batch mapping: ' + error.message;
+                    showNotification(errorMsg, 'error');
+                    resetButton();
                 }
                 return;
             }
@@ -1417,21 +1454,42 @@
             
             try {
                 let response;
+                const startTime = performance.now();
+                
                 if (isRemapping) {
                     // Use remap endpoint for already mapped ingredients
-                    response = await axios.post('/api/remap-ingredient', {
-                        original_ingredient: currentMappingIngredient,
-                        new_ingredient_id: window.selectedIngredientId,
-                        product_name: window.remappingIngredient.product,
-                        note: label
-                    });
+                    response = await Promise.race([
+                        axios.post('/api/remap-ingredient', {
+                            original_ingredient: currentMappingIngredient,
+                            new_ingredient_id: window.selectedIngredientId,
+                            product_name: window.remappingIngredient.product,
+                            note: label
+                        }),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timeout')), 10000)
+                        )
+                    ]);
                 } else {
                     // Use regular mapping endpoint for unmapped ingredients
-                    response = await axios.post('/api/manual-map', {
-                        original_ingredient: currentMappingIngredient,
-                        ingredient_id: window.selectedIngredientId,
-                        note: label
-                    });
+                    response = await Promise.race([
+                        axios.post('/api/manual-map', {
+                            original_ingredient: currentMappingIngredient,
+                            ingredient_id: window.selectedIngredientId,
+                            note: label
+                        }),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timeout')), 10000)
+                        )
+                    ]);
+                }
+                
+                // Log network performance for debugging
+                const duration = performance.now() - startTime;
+                console.log(`🕐 API call ${isRemapping ? 'remap' : 'map'} took ${duration.toFixed(0)}ms`);
+                
+                // Log slow requests
+                if (duration > 1000) {
+                    console.warn(`⚠️ Slow API call detected: ${duration.toFixed(0)}ms for ${isRemapping ? 'remap' : 'map'}`);
                 }
                 
                 if (response.data.success) {
@@ -1497,10 +1555,15 @@
                 } else {
                     const action = isRemapping ? 'remapping' : 'mapping';
                     showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)} failed: ` + response.data.error, 'error');
+                    resetButton();
                 }
             } catch (error) {
                 const action = isRemapping ? 'remapping' : 'mapping';
-                showNotification(`Error ${action} ingredient: ` + error.message, 'error');
+                const errorMsg = error.message === 'Request timeout' ? 
+                    `${action.charAt(0).toUpperCase() + action.slice(1)} timed out. Please try again.` : 
+                    `Error ${action} ingredient: ` + error.message;
+                showNotification(errorMsg, 'error');
+                resetButton();
             }
         }
 
@@ -2691,6 +2754,38 @@
             document.getElementById('confirm-mapping-text').textContent = 'Map Ingredient';
             document.getElementById('confirm-mapping').disabled = false;
         });
+
+        // Network analysis logging for debugging
+        function logNetworkAnalysis() {
+            console.log('🌐 Network Analysis Log:');
+            console.log('=======================');
+            
+            // Check axios configuration
+            console.log('📡 Axios default timeout:', axios.defaults.timeout || 'Not set');
+            
+            // Check if we're running locally
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            console.log('🏠 Running locally:', isLocal);
+            console.log('🌍 Current URL:', window.location.href);
+            
+            // Performance API availability
+            const hasPerformance = 'performance' in window;
+            console.log('⏱️ Performance API available:', hasPerformance);
+            
+            if (hasPerformance) {
+                const navigation = performance.getEntriesByType('navigation')[0];
+                if (navigation) {
+                    console.log('🔄 Page load time:', (navigation.loadEventEnd - navigation.loadEventStart).toFixed(0) + 'ms');
+                    console.log('🔗 DNS lookup time:', (navigation.domainLookupEnd - navigation.domainLookupStart).toFixed(0) + 'ms');
+                    console.log('🤝 Connection time:', (navigation.connectEnd - navigation.connectStart).toFixed(0) + 'ms');
+                }
+            }
+            
+            console.log('=======================');
+        }
+
+        // Call network analysis on page load
+        window.addEventListener('load', logNetworkAnalysis);
 
         // Immediate UI feedback for mapping operations
         function showImmediateMappingFeedback(ingredient, action, targetIngredient, count = 1) {
