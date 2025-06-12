@@ -749,7 +749,6 @@ def get_results():
         import pandas as pd
         import numpy as np
         try:
-            print(f'[DEBUG] Serializing type: {type(data)}, value: {str(data)[:200]}')
             if isinstance(data, list):
                 return [convert_to_json_serializable(item) for item in data]
             elif isinstance(data, dict):
@@ -758,7 +757,6 @@ def get_results():
                     try:
                         result[key] = convert_to_json_serializable(value)
                     except Exception as e:
-                        print(f'[SERIALIZATION ERROR] Key: {key}, Value: {value}, Error: {e}')
                         result[key] = str(value)
                 return result
             elif isinstance(data, pd.Series):
@@ -772,23 +770,13 @@ def get_results():
                 try:
                     return data.item()
                 except Exception as e:
-                    print(f'[DEBUG] .item() failed: {e}, fallback to str')
                     return str(data)
             elif isinstance(data, (np.generic,)):
                 return data.item()
             else:
                 return data
         except Exception as e:
-            print(f'[SERIALIZATION FATAL ERROR] {e} for data: {str(data)[:200]}')
             return str(data)
-
-    # Log the lengths and samples
-    print(f'[RESULTS API] mapping_results length: {len(mapper.mapping_results)}')
-    print(f'[RESULTS API] unmapped_ingredients length: {len(mapper.unmapped_ingredients)}')
-    if mapper.mapping_results:
-        print(f'[RESULTS API] mapping_results sample: {mapper.mapping_results[0]}')
-    if mapper.unmapped_ingredients:
-        print(f'[RESULTS API] unmapped_ingredients sample: {mapper.unmapped_ingredients[0]}')
 
     try:
         mapped = convert_to_json_serializable(mapper.mapping_results)
@@ -798,7 +786,6 @@ def get_results():
             'unmapped': unmapped
         })
     except Exception as e:
-        print(f'[RESULTS API ERROR] {e}')
         return jsonify({
             'mapped': [],
             'unmapped': [],
@@ -1373,6 +1360,46 @@ def get_single_product_status(product_name):
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/save-note', methods=['POST'])
+def save_note():
+    """Save or update note for any ingredient (mapped or unmapped)"""
+    data = request.get_json()
+    original_ingredient = data['original_ingredient']
+    product_name = data.get('product_name', '')
+    note = data.get('note', '')
+    
+    print(f"[SAVE-NOTE DEBUG] Looking for ingredient: '{original_ingredient}' in product: '{product_name}'")
+    
+    # First, try to find in MAPPED ingredients
+    for i, item in enumerate(mapper.mapping_results):
+        if (item.get('original_ingredient') == original_ingredient and 
+            item.get('product_name') == product_name):
+            print(f"[SAVE-NOTE DEBUG] Found in MAPPED list at index {i}, updating note")
+            mapper.mapping_results[i]['note'] = note
+            return jsonify({'success': True, 'location': 'mapped'})
+    
+    # If not found in mapped, try UNMAPPED ingredients
+    for i, item in enumerate(mapper.unmapped_ingredients):
+        if (item.get('original_ingredient') == original_ingredient and 
+            item.get('product_name') == product_name):
+            print(f"[SAVE-NOTE DEBUG] Found in UNMAPPED list at index {i}, updating note")
+            mapper.unmapped_ingredients[i]['note'] = note
+            return jsonify({'success': True, 'location': 'unmapped'})
+    
+    # If still not found, provide detailed debug info
+    print(f"[SAVE-NOTE DEBUG] Ingredient not found in either list!")
+    print("Available MAPPED ingredients (first 3):")
+    for i, item in enumerate(mapper.mapping_results[:3]):
+        print(f"  {i}: '{item.get('original_ingredient', '')}' in '{item.get('product_name', '')}'")
+    print("Available UNMAPPED ingredients (first 3):")
+    for i, item in enumerate(mapper.unmapped_ingredients[:3]):
+        print(f"  {i}: '{item.get('original_ingredient', '')}' in '{item.get('product_name', '')}'")
+    
+    return jsonify({
+        'success': False, 
+        'error': f'Ingredient "{original_ingredient}" not found in either mapped or unmapped lists for product "{product_name}"'
+    })
 
 if __name__ == '__main__':
     import sys
