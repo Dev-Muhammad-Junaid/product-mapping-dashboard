@@ -1,0 +1,1030 @@
+ingredient_id,name
+1,Calcium Chloride
+2,Magnesium Chloride
+3,Potassium Bicarbonate
+4,Electrolytes
+5,Sodium Bicarbonate
+6,Magnesium Sulfate
+8,Bromide
+9,Chloride
+10,Sulfate
+12,Trihalomethanes
+13,Sodium Sulfate
+14,Gross Alpha
+15,Gross Beta
+16,Radium combined (226 and 228)
+17,Silica
+20,Arsenic
+21,Barium
+22,Fluoride
+23,Nitrate
+24,Uranium
+25,Dipotassium Phosphate
+26,Bicarbonate Alkalinity (as HCO3)
+28,Pink Himalayan Salt
+29,Bromodichloromethane
+30,Chloroform
+31,Dibromochloromethane
+32,Radon
+33,Potassium Chloride
+34,Chloramine
+36,Haloacetic acids (HAA9)
+37,Haloacetic acids (HAA5)
+38,Chromium (hexavalent)
+39,Nitrite
+40,Bromate
+41,Calcium
+42,Magnesium
+43,Potassium
+44,Bicarbonate
+45,Sodium
+46,Manganese
+47,Aluminum
+48,Glacial Water
+49,Bromoform
+50,Dibromoacetic acid
+51,Dichloroacetic acid
+52,Trichloroacetic acid
+55,E. coli
+56,Coliform Bacteria
+57,Mountain Water
+58,Nickel
+59,Zinc
+60,Chlorine Dioxide
+61,Chlorine
+62,Lead
+63,Mercury
+64,Cadmium
+65,Copper
+66,Spring Water
+67,"1,4-Dioxane"
+68,Bromochloroacetic acid
+69,PFAS
+70,Tap Water
+71,Benzene
+72,Asbestos
+73,Particulates (Class 1)
+75,Mineral Water
+76,Carbon Dioxide (CO2)
+77,Boron
+78,Thallium
+79,Chromium (trivalent)
+80,Antimony
+81,Beryllium
+82,Iron
+83,Selenium
+84,Silver
+86,Cyanide
+88,Carbon Tetrachloride
+89,Chlorate
+91,"1,2,3-Trichloropropane"
+93,"1,2-Dibromo-3-chloropropane"
+94,Tetrachloroethylene (perchloroethylene)
+95,PFBS
+96,PFHxS
+103,Milk Protein
+104,Whey Protein
+108,Protein Blend
+109,Creatine Monohydrate
+110,Bisphenol A (BPA)
+111,BetaTOR
+112,HMB Free Acid
+118,Sunflower Oil
+119,Canola Oil
+120,Natural and Artificial Flavors
+125,Soluble Corn Fiber
+127,Unsweetened Chocolate
+134,PCBs
+135,Organic Peanuts
+136,"Dark Chocolate (Fairtrade Cocoa Butter, Fairtrade Cocoa Powder, Organic Coconut Sugar, Salt)"
+137,"Organic Sugars (Organic Maple Syrup, Organic Tapioca Syrup, Organic Prune Juice Concentrate, Organic Date Syrup)"
+138,Organic Jerusalem Artichoke Powder
+139,Organic Hazelnut Butter
+140,Olive Oil
+141,Organic Pea Protein
+142,Vanilla Extract
+143,Organic Rice Bran Extract
+145,Polydextrose
+147,Glycerin
+150,Carrageenan
+151,Acesulfame Potassium
+152,Calcium Caseinate (Milk)
+153,Sodium Caseinate (Milk)
+155,Soluble Vegetable Fiber
+156,Magnesium Phosphate
+157,Cellulose Gum and Gel
+158,Medium Chain Triglycerides
+160,Milk Protein Isolate
+161,Chromium Polynicotinate
+163,"Protein Blend (Whey, Casein, Milk Protein Concentrate)"
+165,"Emulsifiers (Carrageenan, Cellulose Gum)"
+166,Pea Protein Isolate
+167,Cocoa (Processed with Alkali)
+168,Canola Protein Isolate
+169,Brown Rice Protein Isolate
+170,High Oleic Sunflower Oil
+171,Sodium Gluconate
+172,Sunflower Lecithin
+173,L-Tryptophan
+175,Green Tea Concentrate
+176,Magnesium Glycinate
+177,Stevia (Reb M)
+178,Zinc Citrate
+179,Vitamin D (Cholecalciferol)
+180,Vitamin B12 (Cyanocobalamin)
+181,Black Carrot Extract
+182,Butterfly Pea Flower Extract
+183,Delta-BHC (Delta-Hexachlorocyclohexane)
+184,Dichlorvos
+185,Dieldrin
+186,Diphenamid
+188,Volatile Organic Compound (VOC)
+189,Glyphosate
+190,Pharmaceuticals
+191,Heavy Metals
+192,Total Dissolved Solids (TDS)
+193,Disulfoton
+194,Endosulfan Sulfate
+195,Endrin
+196,Endrin Aldehyde
+197,Endrin Ketone
+198,Endosulfan I
+199,Endosulfan II
+200,Ethoproph
+201,Fenamiphos
+202,Fluoridone
+203,Gamma BHC (Lindane)
+204,Heptachlor
+206,Molinate
+207,Prometon
+209,Toxaphene
+210,Acenaphthylene
+211,Anthracene
+212,Benz(a)anthracene
+213,Benzo[b]fluoranthene
+214,Benzo[k]fluoranthene
+215,Benzo[a]pyrene
+216,Benzo[ghi]perylene
+217,Butyl Benzyl Phthalate
+218,Carboxin
+219,2-Chlorobiphenyl
+220,Chrysene
+221,Cycloate
+222,DCPA (Dacthal)
+223,Diazinon
+224,"Dibenz[a,h]anthracene"
+226,Sodium Citrates
+227,Blue 1
+228,Strawberry Flavor
+229,Whey Protein Concentrate
+230,Isomalto-Oligosaccharides (Soluble Vegetable Powder)
+231,"Non-Dairy Creamer (Sunflower Oil, Maltodextrin, Sodium Caseinate [Milk Derivative], Mono and Diglycerides, Tocopherols [Protect Flavor])"
+232,Organic Oat Fiber
+233,Lactoferrin
+234,Cholecalciferol Vitamin A Palmitate
+235,Cellulose Gel
+236,Tripotassium Phosphate
+237,Sodium Polyphosphates
+238,Ascorbic Acid
+239,Ferric Pyrophosphate
+240,Vitamin E Acetate
+241,Beta Carotene
+242,Copper Gluconate
+244,Thiamin Mononitrate (Vitamin B1)
+245,Potassium Iodide
+246,Chromium Chloride
+247,Non-Fat Milk Powder
+248,Cellulose Microcrystalline
+249,Mono and Diglycerides of Fatty Acids
+250,Beet Powder
+253,Resistant Maltodextrin (Fibersol-2)
+254,"PFAS (PFOA, PFBA, PFHpA)"
+255,Phthalates
+256,PFAS (PFOA/PFOS)
+257,Pumpkin Seed Protein
+258,Organic Sunflower Seed Protein
+259,Alfalfa Protein
+260,Tart Cherry
+261,Probiotics
+262,"Pesticides (Azoxystrobin, Dimethomorph)"
+263,Tricalcium Phosphate
+264,Mixed Triglycerides
+265,"Vitamins A, C, and D"
+267,Organic Lime Juice
+268,Organic Orange Juice
+269,Organic and Natural Flavors
+270,Amla Extract
+271,Organic Lemon Balm Extract (Leaf)
+272,Schisandra Extract (Fruit)
+273,Organic Ashwagandha Powder (Root)
+274,Citric Acid
+275,L-Theanine
+276,Organic Caffeine (From Green Coffee Beans)
+277,Organic Ginseng
+278,Stevia Extract
+279,Gasoline
+280,Diesel
+281,Crude Oil
+282,Kerosene
+283,Mineral Spirits
+284,Refined Oil
+285,Free Chlorine
+286,Atenolol
+287,"DEET (N,N-Diethyl-meta-toluamide)"
+288,Meprobamate
+289,Linuron
+290,Metolachlor
+293,Phenytoin
+294,Estrone
+295,"2,4-Dichlorophenoxyacetic Acid"
+296,Dinoseb
+297,Heptachlor Epoxide
+298,Methyl Tert-Butyl Ether (MTBE)
+299,"Fenoprop (2,4,5-TP Silvex)"
+300,Chlorobenzene
+301,"2,4-DB (4-(2,4-Dichlorophenoxy)butanoic Acid)"
+302,"2,4,5-T (2,4,5-Trichlorophenoxyacetic Acid)"
+303,"3,5-Dichlorobenzoic Acid"
+304,Acifluorfen
+305,Bentazone
+306,Chloramben
+307,"Dalapon (2,2-Dichloropropionic Acid)"
+308,"Dicamba (3,6-Dichloro-2-Methoxybenzoic Acid)"
+309,"Picloram (4-Amino-3,5,6-Trichloropicolinic Acid)"
+310,"Quinclorac (3,7-Dichloro-8-Quinolinecarboxylic Acid)"
+311,8:2 Fluorotelomer Thioether Amido Sulfonic Acid (8:2 FTS)
+312,Perfluorodecanoic Acid (PFDA)
+313,Polytetrafluoroethylene (PTFE)
+314,Bis(2-Chloroethyl) Ether
+315,Butachlor (Machette)
+316,Butylate
+317,Chlorpyrifos (CPF)
+318,Fenarimol
+319,Hexachlorobenzene (HCB)
+320,Metribuzin
+322,17-Beta-Estradiol
+323,Ethinyl Estradiol
+324,Fluoxetine
+325,Testosterone
+326,Di-n-Octyl Phthalate
+327,Di(2-Ethylhexyl) Phthalate
+328,Gross Alpha (Thorium 230)
+329,Gross Beta (Cesium 137)
+330,2-Chloronaphthalene
+331,2-Chlorophenol
+333,"2,4-Dimethylphenol"
+334,2-Nitrophenol
+335,"Bis(2-Chloroisopropyl) Ether (2,2'-Oxybis(1-Chloropropane))"
+336,"2,4-Dichlorophenol"
+337,"2,4-Dinitrophenol"
+338,"2,4-Dinitrotoluene"
+339,"2,4,6-Trichlorophenol"
+340,"2,6-Dinitrotoluene"
+341,4-Bromophenyl Phenyl Ether
+342,4-Chloro-3-Methylphenol
+343,4-Chlorophenyl Phenyl Ether
+344,4-Nitrotoluene
+345,Bis(2-Chloroethoxy) Methane
+346,"4,6-Dinitro-o-Cresol"
+347,Diphenylamine
+348,Fluoranthene
+349,Hexachloroethane
+350,N-Nitrosodipropylamine
+351,Nitrobenzene
+352,Phenols
+353,Pyrene
+354,"1,1-Dichloro-2-Propanone"
+355,"1,1-Dichloroethene"
+356,"1,1-Dichloropropane"
+357,"1,1,2,2-Tetrachloroethane"
+358,"1,2,3-Trichlorobenzene"
+359,"1,2,4-Trimethylbenzene"
+360,"1,3-Dichlorobenzene"
+361,"1,3-Dichloropropane"
+362,"1,3,5-Trimethylbenzene (Mesitylene)"
+363,"1,4-Dichlorobenzene"
+364,"2,2-Dichloropropane"
+365,4-Isopropyltoluene (p-Cymene)
+366,Bromoacetonitrile
+367,Bromobenzene
+368,Bromochloromethane
+369,Bromomethane
+370,"1,1,1-Trichloro-2-Propanone"
+371,Chloroethane
+372,Chloromethane
+374,"Cis-1,3-Dichloropropene"
+375,Dibromomethane
+376,Dichloroacetonitrile
+377,Fluorotrichloromethane
+378,Hexachlorobutadiene
+379,Isopropylbenzene (Cumene)
+380,m-Xylene
+381,Butylbenzene
+382,Propylbenzene
+383,o-Chlorotoluene
+384,"o-Dichlorobenzene (1,2-Dichlorobenzene)"
+385,Naphthalene
+386,o-Xylene
+387,p-Chlorotoluene (4-Chlorotoluene)
+388,Sec-Butylbenzene
+389,Tert-Butylbenzene
+390,"Trans-1,2-Dichloroethene"
+391,"Trans-1,3-Dichloropropene"
+392,Trichloroacetonitrile
+393,Xylene
+394,Chloropicrin
+395,"1,2-Dichloroethane"
+396,Bromochloroacetonitrile
+397,Dibromoacetonitrile
+398,Chlorodibromomethane
+399,Ammonia
+400,Calcium Hypochlorite
+401,Formaldehyde
+402,Iodine
+403,Sulfide
+404,Fluosilicate
+405,Fluosilicic Acid
+406,Bromoacetic Acid
+407,Chloroacetic Acid
+408,Cobalt
+409,Germanium
+410,Lithium
+411,"2,3,7,8-Tetrachlorodibenzo-p-Dioxin"
+412,Acetochlor
+413,DCPA Di-Acid Degradate
+414,Dichlorprop
+415,Paraquat
+416,Tetrachloroterephthalic Acid
+417,Thiobencarb
+418,Microplastics
+419,N-Fluorobenzenesulfonimide (NFBS)
+420,Perfluoro-2-Methyl-3-Oxahexanoic Acid (GenX)
+421,Perfluorobutanoic Acid (PFBA)
+422,Furfural (2-Furancarboxaldehyde)
+423,3-Hydroxycarbofuran
+424,Alachlor ESA
+425,Aldicarb Sulfone
+426,Aldicarb Sulfoxide
+427,Carbaryl
+428,Chloroacetonitrile
+429,Chlorpropham
+430,Cis-Chlordane
+431,Alpha-Chlordane
+432,Dimethoate
+434,Iodomethane
+435,Methomyl
+436,Metolachlor Oxanilic Acid
+437,N-Nitroso-di-N-butylamine
+439,Oxamyl
+441,Vernolate
+442,"4-Androstene-3,17-Dione"
+443,Estriol
+444,Tris(1-Chloro-2-Propyl) Phosphate (TCCP)
+445,Diisobutyl Phthalate
+446,"1,1,1,2-Tetrachloroethane"
+447,"1,2,3-Trimethylbenzene"
+448,2-Hexanone
+449,2-Methylbutane (Isopentane)
+450,2-Nitropropane
+451,Acetone
+452,Acetonitrile
+453,Acrylonitrile
+454,Benzaldehyde
+455,Carbon Disulfide
+456,Chlorotrifluoromethane
+457,"Cis-1,2-Dichloroethene"
+458,Cyclohexane
+459,Dichlorodifluoromethane
+460,Hexane
+461,Isopropyl Alcohol
+462,Methyl Ethyl Ketone
+463,Methyl Isobutyl Ketone
+464,Methylcyclopentane
+466,Pentane
+467,Tert-Butyl Alcohol
+468,Tetrahydrofuran
+469,Trichlorofluoromethane
+471,Butylated Hydroxytoluene (BHT)
+472,Bis(2-Ethylhexyl) Adipate
+473,Etridiazole
+474,"MGK 264 (N-(2-Ethylhexyl)-5-Norbornene-2,3-Dicarboximide)"
+475,Napropamide
+476,Nitrofen
+477,Oxyfluorfen
+478,p-Cresol
+479,Simetryn
+480,Tebuconazole
+481,Tebuthiuron
+482,Terbacil
+483,Terbutryn
+484,Vinclozolin
+485,Sodium Fluoride
+498,Aldicarb
+499,Propoxur (Baygon)
+500,Aroclor
+501,Cis-Nonachlor
+502,Disulfoton Sulfone
+503,Disulfoton Sulfoxide
+504,Fluorobenzene
+505,Gamma Chlordane
+506,Methiocarb
+507,Methyl Cyclohexane
+508,Mevinphos
+509,Tetrachlorvinphos (Stirofos)
+513,Natural Flavors
+514,Grapefruit Juice (real)
+515,Lemon Juice (real)
+516,Mango Puree
+517,Orange Juice
+519,Hibiscus
+520,Raspberry Puree
+521,Raspberry Juice
+522,Lime Juice
+523,Natural Essence
+525,Organic Agave Inulin
+526,Apple Juice (Concentrate)
+527,Organic Apple Cider Vinegar
+528,Stevia
+529,Lime Juice (Concentrate)
+530,Lemon Juice (Concentrate)
+531,Phosphorus
+532,Bacteria
+533,Parasites
+534,Americium 241
+535,Mendelevium 258
+536,Californium 251 and 252
+537,Neptunium 237
+539,Polonium 210
+540,Protactinium 231
+541,Technitium 99
+542,Strontium
+543,Malic Acid
+544,Fruit and Vegetable Juice
+545,Potassium Benzoate
+546,Sucralose
+547,Green Tea Extract
+548,Cherry Juice Concentrate
+549,Retinol
+550,Niacinamide
+551,Calcium Pantothenate
+552,Cholecalciferol
+553,Biotin
+554,Cyanocobalamin
+555,Pyridoxine Hydrochloride
+557,Magnesium Malate
+558,Cane Sugar
+559,Dextrose
+560,Potassium Citrate
+561,Sodium Citrate
+562,Silicon Dioxide
+563,Stevia Leaf Extract
+565,Bis(2-Ethylhexyl)phthalate
+566,Organic Flavors
+567,Erythritol
+568,Coconut Water Concentrate
+569,Acacia Gum
+570,Sea Salt
+571,Tea Extract
+572,Green Coffee Bean Extract
+573,Coffee Fruit Extract
+574,DL-Alpha Tocopheryl Acetate (Vitamin E)
+575,Agave Nectar
+576,Cassava Root Fiber
+577,Chicory Root Inulin
+578,Jerusalem Artichoke
+579,Nopal Cactus Extract
+580,Marshmallow Root
+581,Calendula Flower Extract
+582,Kudzu Root
+583,Ginger Juice
+584,Cassava Root Syrup
+585,Natural Ginger Flavor
+586,Natural Mulling Spice Flavor
+587,BCAAs
+588,L-Citrulline
+589,Panax Ginseng Extract
+590,L-Carnitine
+591,Steviol Glycosides
+593,Ginger Root Extract
+595,Organic Caffeine
+596,Organic Guarana Extract
+597,Organic Panax Ginseng Extract
+598,Organic Brewed Yerba Mate
+599,Organic Mango Puree
+600,Organic Pineapple Juice Concentrate
+601,Organic Guava Natural Flavor
+602,Organic Apricot Natural Flavor
+603,Carbonated Water
+604,Taurine
+605,Glycerol Ester of Wood Rosin
+606,Sucrose Acetate Isobutyrate
+608,Xanthan Gum
+609,Magnesium Carbonate
+610,Sucrose
+611,Glucose
+612,Inositol
+614,Natural Caffeine
+615,L-Leucine
+617,Magnesium Lactate
+618,Acerola Juice Powder
+619,L-Valine
+620,L-Isoleucine
+621,L-Glutamine
+622,Choline Bitartrate
+623,Thiamine Hydrochloride
+624,Folic Acid
+625,Riboflavin
+626,Camu Camu Extract
+627,Turmeric Extract
+628,Coconut Water
+629,Monk Fruit Juice Concentrate
+630,Sodium Benzoate
+631,Potassium Sorbate
+632,Alpha-Glyceryl Phosphoryl Choline (A-GPC)
+633,Ginseng Extract
+634,Magnesium Citrate
+635,Guarana Extract
+636,Coenzyme Q10
+637,Sensoril®
+638,Glucuronolactone
+639,Chromium Chelate
+640,Calcium Carbonate
+641,Caramel Color
+642,Phosphoric Acid
+643,Cognizin Citicoline
+644,N-Acetyl-L-Tyrosine
+645,Carnosine Beta-Alanine
+646,BetaPower® Betaine Anhydrous
+647,Caffeine Anhydrous
+648,Dynamine
+649,TeaCrine
+650,Nitrate-N
+652,Calcium Lactate
+653,Sodium Hexametaphosphate
+654,Polysorbate 60 (Tween-60)
+655,Zinc Gluconate
+656,Calcium Disodium EDTA
+658,Celtic Sea Salt
+659,Hydrogen Gas
+660,Reverse Osmosis Water
+661,Fructose
+663,Organic Lemon Juice
+664,Organic Blackberry Juice Concentrate
+665,Organic Amla Extract (Vitamin C)
+666,Organic Lemon Balm
+667,Organic Schisandra Fruit Extract
+668,Monopotassium Phosphate
+669,Gum Arabic
+671,Sugar
+672,Allura Red 40
+673,FD&C Blue #1
+674,Sodium Selenate
+675,Manganese Citrate
+676,Calcium Phosphate
+678,Apple Juice
+679,White Grape
+680,Blackberry
+681,Acerola Juice Concentrate
+682,Cucumber Essence
+683,Purified Water
+684,Disodium Phosphate (DSP)
+685,Filtered Water
+686,Vegetable Juice Concentrate (Color)
+687,Natural Blueberry Pomegranate Flavor
+688,Magnesium Oxide
+689,Zinc Oxide
+690,Guar Gum
+691,Vitamin A Palmitate
+692,Sodium Lactate
+693,Fruit Juice (Color)
+694,Natural Strawberry Kiwi Flavor
+695,Natural Orange Clementine Flavor
+696,Beta-Apo-8'-Carotenal
+697,Natural Blueberry Raspberry Flavor
+698,Organic Maca Root Powder
+699,Black Carrot Juice Concentrate
+700,Bacillus Coagulans GBI-30 6086
+701,CBD Distillate
+702,Limonene
+703,Maltodextrin
+704,Spirulina Extract
+705,Allulose
+706,Natural Berry Flavor
+707,Lion's Mane Extract
+708,Reishi Extract
+709,Watermelon Juice
+710,Peach Juice Concentrate
+711,Black Tea Powder
+712,Vegetable Fiber
+713,Purple Sweet Potato Color
+714,Terpene Blend
+715,Grapefruit Flavor
+716,Lime Flavor
+717,Elderberry Juice Powder
+718,Lychee Puree
+719,Honey
+720,Dopa Bean (Mucuna Pruriens)
+721,Vitamin D3
+722,Coconut Meat
+723,Natural White Peach Flavor
+724,Natural Honeysuckle Flavor
+725,Peppermint Extract
+726,Bacillus Coagulans MTCC 5856
+727,Cordyceps Mushroom Extract
+728,Pineapple Juice
+729,Water
+730,Organic Lemon Flavor
+731,Organic Coconut Water
+732,Organic Coconut Cream
+733,Gellan Gum
+734,Coconut Pulp
+735,Coconut Puree
+736,Yuzu Juice
+737,Organic Elderberry Powder
+738,Zinc Sulfate
+739,Coconut Nectar
+740,Vinegar
+742,Cocoa Powder
+743,Mango Juice
+744,Whole Milk
+745,Cold Brew Coffee
+746,Corn Starch
+747,Potassium Carbonate
+748,Monk Fruit Extract
+749,Deuterium
+750,Milk Thistle Seed Extract
+751,Guarana Seed Extract
+752,Vitamin B3
+753,Vitamin B5
+754,Vitamin B6
+755,Vitamin B12
+756,Filtered Carbonated Water
+757,Angelica Root Extract
+758,Calcium Citrate
+759,Sodium Metabisulfite
+760,Coconut Essence
+761,Aloe Vera
+762,Sugarcane Juice
+763,Roasted Coconut Essence
+764,Probiotic Cultures
+765,Organic Coffee Concentrate
+766,Organic Arabica Coffee
+767,Organic Roasted Coffee
+768,Sparkling Filtered Water
+769,Organic Invert Cane Syrup
+770,Organic Clarified Acai Juice
+771,Organic Passion Fruit Juice Concentrate
+772,Organic Yerba Mate Extract
+773,Organic Pomegranate Juice Concentrate
+774,Brewed Guayusa
+775,L-Arginine
+776,Artificial Flavors
+777,Vodka
+779,Aspartame
+800,Soybean Oil
+801,Whey Protein Isolate
+802,Soy Lecithin
+803,Salt
+806,Hydrolysed Whey Protein Isolate
+807,Sodium Chloride
+808,Whey Peptides
+809,Lecithin
+810,Cellulose Gum
+811,Lactase
+812,Vitamin B1 (Thiamine Hydrochloride)
+813,Vitamin B2 (Riboflavin)
+814,Vitamin B3 (Nicotinamide)
+815,Vitamin B5 (Pantothenic Acid)
+816,Vitamin B6 (Pyridoxine Hydrochloride)
+817,Vitamin H (Biotin)
+820,Iron (from Iron Amino Acid Chelate)
+822,Betacarotene
+823,Certified Organic Spirulina (Arthrospira Platensis Cell Powder)
+824,Milk Protein Concentrate
+825,Inulin
+826,Psyllium Husk
+827,Chicory Root Fibre
+828,Glucomannan
+829,Chromium Picolinate
+830,Hydrolyzed Whey Protein Isolate
+833,Organic Sprouted & Fermented Golden Pea Protein
+834,Organic Sprouted Brown Rice Protein
+835,Organic Pea Fibre
+836,Organic Acacia Gum
+838,Bromelain
+839,Calcium Caseinate
+840,Micellar Casein
+841,Egg Albumen
+842,Medium Chain Triglycerides Powder
+843,Carboxymethyl Cellulose (466)
+844,Hydrolysed Bovine Collagen
+845,Electrolyte Blend
+846,Allura Red
+847,Vanilla Cream Pea Protein Isolate
+848,Hydrolysed Marine Collagen
+850,Thaumatin
+851,Lactobacillus Rhamnosus GG
+852,Grass-fed Protein Whey
+853,Ultra Filtered Whey Protein Isolate (WPI)
+854,Ultra Filtered Whey Protein Concentrate (WPC)
+856,Natural Sweetener
+857,Micro-filtered Whey Protein Isolate
+858,Micro-filtered Whey Protein Concentrate
+859,Casein
+860,Peanut Flour
+861,Coconut Palm Sugar
+863,Coconut
+864,Papain
+865,Rice Flour
+866,Tapioca Starch
+867,Sodium Ascorbate
+868,Energy
+869,Fat
+870,Carbohydrates
+871,Proteins
+872,Vitamin E
+873,Vitamin B1 (Thiamin)
+874,Vitamin B6 (Pyridoxine)
+875,Calcium ascorbate dihydrate (Ascorbic Acid)
+876,Iron (from Iron II glycinate)
+878,Alcohol Denat
+879,Propylene Glycol
+880,Amp-acrylates/Allyl Methacrylate Copolymer
+881,PVP
+882,Talc
+883,Phenoxyethanol
+884,Disodium EDTA
+885,Chlorphenesin
+886,Triethanolamine
+887,Caseinates
+890,Vitamin B12 (as Methylcobalamin)
+891,Magnesium (as Magnesium Chloride)
+892,Sodium (as Sodium Phosphate)
+893,Potassium (as Dipotassium Phosphate)
+894,Micronised Creatine Monohydrate
+895,CarnoSyn Beta-Alanine
+896,Arginine AKG
+898,Calcium Silicate
+899,Sodium (as Sodium Citrate)
+900,Pyridoxal-5-Phosphate
+901,Methylcobalamin
+903,Citrulline Malate
+904,Conjugated Linoleic Acid (CLA) powder
+905,L-Carnitine Tartrate
+906,DygloFit (Dichrostachys glomerata) fruit extract
+908,Titanium Dioxide
+909,Artificial Sweeteners
+910,Curcuma longa rhizome ext. dry conc. std. 105.30mg
+911,Piper nigrum (Black Pepper) fruit ext. dry conc. std. 1.06mg
+912,Magnesium (as heavy magnesium oxide)
+913,Passiflora incarnata
+914,Soy
+915,Sulphites
+916,Caffeine
+917,Guarana
+918,Thiamine Nitrate
+920,Colecalciferol
+921,dl-alpha-tocopheryl acetate
+923,Vitamin A
+924,Vitamin K1
+925,Vitamin B1
+926,Vitamin B2
+927,Vitamin C
+928,Chromium
+929,L. rhamnosus HN001
+930,L. plantarum Lp115
+931,L. gasseri Lg-36
+932,L. reuteri RC14
+933,L. rhamnosus GR-1
+934,Cranberry Extract
+935,L. rhamnosus Lr-32
+936,B. animalis ssp. lactis HN019
+937,B. lactis BI-04
+938,L. paracasei Lpc-37
+939,L. plantarum Lp-115
+940,L. casei Lc-11
+941,S. thermophilus St-21
+942,B. breve Bb-03
+943,B. longum BI-05
+944,L. plantarum CECT 7527
+945,L. plantarum CECT 7528
+946,L. plantarum CECT 7529
+947,B. infantis Bi-26
+948,L. delbrueckii ssp. bulgaricus Lb-87
+949,L. reuteri 1E1
+950,L. rhamnosus GG
+951,B. gasseri Lg-36
+952,DL-alpha-tocopheryl acetate (Vitamin E)
+953,Thiamine (Vitamin B1)
+955,Nicotinamide (Vitamin B3)
+956,Pantothenic acid (Vitamin B5)
+957,Pyridoxine (Vitamin B6)
+958,Bacillus coagulans (MTCC No. 5260) (Unique IS2)
+959,Copper (from Copper gluconate)
+960,Manganese (from Manganese amino acid chelate)
+961,Selenium (from Selenomethionine)
+962,Silicon (from Silicon Dioxide)
+964,Equisetum arvense dry stem extract
+965,Magnesium (from magnesium citrate)
+966,Passionflower (Passiflora incarnata extract)
+967,Hops (Humulus lupulus extract)
+968,Magnesium Carbonate Hydrate
+969,Potassium (as Potassium Phosphate - Monobasic)
+973,Manganese (as Manganese Sulfate Monohydrate)
+974,Thiamine (B1) (as Thiamine Mononitrate)
+975,Riboflavine (B2) (Riboflavin Sodium Phosphate)
+978,DL-Alpha-Tocopherol (Vitamin E) (as DL-Alpha-Tocopheryl Acetate)
+979,Paullinia Cupana (Guarana) Extract
+982,Iron (from Ferrous Gluconate Dihydrate)
+984,Passiflora incarnata dry flower extract
+985,Allium sativum (Garlic) bulb powder
+986,Armoracia rusticana (Horseradish) root ext. dry conc.
+987,L. crispatus LBV88
+988,Vitamin B1 (Thiamine)
+989,Vitamin E (d-alpha-tocopheryl acid succinate)
+990,Calcium (from calcium citrate tetrahydrate)
+991,Chromium (from chromium picolinate)
+993,Iron (from ferrous fumarate)
+994,Magnesium (from heavy magnesium oxide)
+995,Potassium (from potassium sulfate)
+996,Ginkgo biloba (Ginkgo) ext. dry conc.
+997,Rhodiola rosea (Rhodiola) ext. dry conc.
+998,Panax quinquefolius (Ginseng) ext. dry conc.
+999,Tribulus terrestris (Tribulus) ext. dry conc.
+1000,Nicotinic acid
+1001,Vitamin A (Retinyl Acetate)
+1002,Vitamin K (Phytomenadione)
+1003,Lysine (from lysine hydrochloride)
+1004,Molybdenum (from molybdenum trioxide)
+1006,Sambucus nigra (Elderberry)
+1007,Turmeric Juice
+1008,Ashwagandha
+1009,MCT Powder (Milk)
+1010,Green Coffee Extract
+1011,Probiotic Lactospore (Bacillus Coagulans)
+1012,Grapeseed Extract Powder
+1013,Amla Fruit Powder
+1014,Guduchi Powder
+1015,Tartrazine
+1016,Sunset Yellow FCF
+1017,Brilliant Blue FCF
+1018,Yellow Pea Protein
+1019,Brown Rice Protein
+1020,Faba Bean Protein
+1021,Amylase
+1022,Protease
+1023,Cellulase
+1024,Lipase
+1025,Butter Milk Powder
+1027,Hydrolysed Collagen Peptides (Bovine)
+1029,Tartaric Acid
+1032,Sunset Yellow
+1033,Brilliant Blue
+1034,Collagen Peptide
+1035,Trisodium Citrate
+1039,Alpha Amylase
+1040,Acid Protease
+1041,Tapioca Flour
+1042,Soy Protein
+1044,Cocoa
+1045,TENDOFORTE Collagen Peptides
+1046,Prebiotic Corn Fibre
+1047,Digestive Enzymes
+1048,Marine Collagen Peptides
+1049,Jerusalem Artichoke Inulin
+1050,Tremella fuciformis
+1051,Sea Buckthorn Juice Powder
+1052,Niacin (B3)
+1053,Chicory Root Prebiotic Fibre (Inulin)
+1054,Coconut MCT Oil Powder
+1055,Coconut Milk Powder
+1056,Raw Cacao Powder
+1057,Coconut MCT Oil
+1058,Green Banana Resistant Starch Powder
+1059,Jerusalem Artichoke Inulin Powder
+1060,Partially Hydrolysed Guar Gum
+1061,Saccharomyces cerevisiae (Boulardii)
+1062,Acacia
+1063,Skim Milk Powder
+1064,Glucose Syrup Solids
+1065,Hydrogenated Vegetable Oil
+1066,Modified Starch (1442)
+1067,Milk Solids
+1068,Milk Protein Powder (Caseinate)
+1070,Sodium Polyphosphate
+1071,Turmeric
+1072,Vegetable Fat Powder
+1073,Skim Milk
+1075,Hydrolysed Collagen Peptides
+1076,Soy protein isolate
+1077,Corn syrup solids
+1078,Vegetable gum (415)
+1079,Sodium caseinate
+1080,Beta-Alanine
+1082,Bitter Orange Extract
+1083,Styrene/Acrylates/Ammonium Methacrylate Copolymer
+1084,Polyurethane-35
+1085,Cera Alba / Beeswax
+1086,Synthetic Fluorphlogopite
+1088,STYRENE/ACRYLATES COPOLYMER
+1089,LAURETH-21
+1090,PENTYLENE GLYCOL
+1091,DPG (Dipropylene Glycol)
+1092,Caprylic/Capric Triglyceride
+1093,Sodium Hyaluronate
+1094,Arginine
+1095,Panthenol
+1096,Propolis Extract
+1097,Honey Extract
+1098,Octyldodecanol
+1099,Polybutene
+1100,Hydrogenated Polyisobutene
+1101,Hydrogenated Styrene/Isoprene Copolymer
+1102,Pentaerythrityl Tetra-Di-T-Butyl Hydroxyhydrocinnamate
+1103,Ethyl Vanillin
+1104,Ci 15850 (Red 6)
+1105,Ci 45410 (Red 28 Lake)
+1106,Triethylhexanoin
+1107,Dimethicone
+1108,Mineral Oil/Paraffinum liquidum/Huile Minérale
+1109,Diisostearyl Malate
+1110,Beeswax/Cera Alba/Cire D'Abeille
+1111,Ceresin
+1113,Synthetic Candelilla Wax
+1114,Beeswax
+1115,Polyvinyl Alcohol
+1116,CI 77499
+1117,Stearic Acid
+1118,Glyceryl Monostearate
+1119,Cetostearyl Alcohol
+1120,Polysorbate 80
+1121,Hydroxyethyl Cellulose
+1122,Methylparaben
+1123,Propylparaben
+1125,Butylene Glycol
+1126,PEG-150 Distearate
+1127,Tocopherol
+1128,Hylocereus Undatus Fruit Extract
+1129,Red 40 (CI 16035)
+1131,CYCLOHEXASILOXANE
+1132,BUTYROSPERMUM PARKII BUTTER/SHEA BUTTER
+1133,LACTIC ACID
+1134,GLYCOLIC ACID
+1135,SALICYLIC ACID
+1136,CETEARYL ALCOHOL
+1137,BEHENTRIMONIUM CHLORIDE
+1138,AMODIMETHICONE
+1139,DIMETHYL ETHER
+1140,Isopropyl Palmitate
+1141,Cetearyl Ethylhexanoate
+1142,Paraffin
+1143,Goat Milk Solids
+1144,Lactose
+1145,Vegetable Oil Blend
+1146,Galacto-Oligosaccharide (GOS)
+1147,Docosahexaenoic Acid (DHA)
+1148,Arachidonic Acid (ARA)
+1149,Soybean Lecithin
+1150,Organic milk solids
+1151,Organic demineralised whey powder
+1152,Organic vegetable oils
+1156,Japonica Rice
+1157,Potato Starch
+1158,Banana Powder
+1159,Enzymatically hydrolysed whey
+1160,Vegetable oils
+1161,Fish oil
+1162,Bifidobacterium lactis
+1163,Apple Juice Concentrate
+1164,Ferrous Fumarate
+1165,Galacto-oligosaccharides
+1166,Bifidobacterium breve M-16V
+1167,Choline chloride
+1168,Full Cream Goat Milk Solids
+1169,Organic Whole Milk Powder
+1170,Organic Lactose
+1172,Bifidobacterium longum BB536
+1173,Ferrous Sulfate
+1174,ARA (Arachidonic Acid)
+1177,Bifidobacterium (BB-12®)
+1178,Lutein
+1179,Galacto-oligosaccharides (GOS)
+1180,Fructo-oligosaccharides (FOS)
+1181,Lacticaseibacillus Rhamnosus (HN001)
+1182,Omega LCPUFAs
+1183,Long chain polyfructose
+1184,Glycine
+1185,DigeZyme
+1186,Leucine
+1187,Lysine
+1188,Threonine
+1189,Valine
+1190,Isoleucine
+1191,Thickener (415)
+1192,Sweetener (955)
+1193,Saturated Fat
+1194,Trans Fat
+1195,Cholesterol
+1198,Fiber
+1200,N-Nitrosodimethylamine
+1201,Chloral hydrate

@@ -1,0 +1,9 @@
+Type,Pattern,Target_Ingredient_ID,Target_Ingredient_Name,Description
+exact,protein blend,108,Protein Blend,Maps any "protein blend" to generic protein blend
+exact,whey protein isolate milk,801,Whey Protein Isolate,Handles milk suffix variations
+exact,natural flavours,269,Organic and Natural Flavors,Maps natural flavoring terms
+regex,.*whey.*protein.*isolate.*,801,Whey Protein Isolate,Catches any whey protein isolate variations
+regex,.*vitamin.*c.*,238,Ascorbic Acid (Vitamin C),Maps vitamin C variations
+regex,.*sweeteners.*,955,Nicotinamide (Vitamin B3),Maps general sweetener terms
+exact,soy lecithin,46,Lecithin,Maps soy lecithin to generic lecithin
+exact,creatine monohydrate,12,Creatine Monohydrate,Direct mapping for creatine 
