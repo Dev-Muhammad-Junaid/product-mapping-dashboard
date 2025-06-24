@@ -168,6 +168,9 @@
                     <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="logs">
                         Processing Logs
                     </a>
+                    <a href="#" class="tab-link border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm" data-tab="pattern-management">
+                        Pattern Management
+                    </a>
                 </nav>
             </div>
 
@@ -410,6 +413,106 @@
                   </div>
                 </div>
                 <!-- End Export Preview Tab -->
+
+                <!-- Pattern Management Tab -->
+                <div id="pattern-management-tab" class="tab-content hidden">
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-800 mb-2">Custom Pattern Management</h3>
+                                <p class="text-gray-600 text-sm">Manage custom patterns to improve ingredient matching accuracy</p>
+                                <div class="mt-2 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                                    <p class="text-blue-800 text-sm font-medium">ℹ️ Pattern Processing Order:</p>
+                                    <p class="text-blue-700 text-xs mt-1">
+                                        <strong>1. Synonyms (100%)</strong> → <strong>2. Custom Patterns (99-98%)</strong> → <strong>3. Fuzzy Matching (70%+ threshold)</strong>
+                                    </p>
+                                    <p class="text-blue-600 text-xs mt-1">
+                                        Patterns are stored in <code>custom_patterns.json</code> and applied during ingredient processing after normalization.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 flex-wrap">
+                                <button id="export-patterns-csv-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm">
+                                    📄 Export CSV
+                                </button>
+                                <button id="import-patterns-csv-btn" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-sm">
+                                    📁 Import CSV
+                                </button>
+                                <button id="backup-patterns-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm">
+                                    💾 Backup
+                                </button>
+                                <button id="test-samples-btn" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm">
+                                    🧪 Test Samples
+                                </button>
+                                <button id="add-pattern-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm">
+                                    ➕ Add Pattern
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pattern Statistics -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-800">Exact Mappings</h4>
+                            <p class="text-2xl font-bold text-blue-600" id="exact-count">0</p>
+                            <p class="text-sm text-blue-600">Direct matches</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-800">Pattern Rules</h4>
+                            <p class="text-2xl font-bold text-green-600" id="pattern-count">0</p>
+                            <p class="text-sm text-green-600">Regex patterns</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-800">Total Patterns</h4>
+                            <p class="text-2xl font-bold text-purple-600" id="total-patterns">0</p>
+                            <p class="text-sm text-purple-600">All custom rules</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Test Section -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold mb-3">Quick Pattern Test</h4>
+                        <div class="flex gap-2 mb-3">
+                            <input type="text" id="test-ingredient" placeholder="Enter ingredient to test (e.g., 'Protein Blend')..." 
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <button id="test-single-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                                Test
+                            </button>
+                        </div>
+                        <div id="test-results" class="hidden">
+                            <h5 class="font-semibold mb-2 text-sm">Test Results:</h5>
+                            <div id="test-results-content" class="space-y-2"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Patterns Display -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-semibold">Current Patterns</h4>
+                        
+                        <!-- Exact Mappings -->
+                        <div class="border rounded-lg p-4">
+                            <h5 class="font-semibold text-blue-600 mb-3 flex items-center">
+                                <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                                Exact Mappings
+                            </h5>
+                            <div id="exact-mappings-list" class="space-y-2 max-h-60 overflow-y-auto">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Pattern Rules -->
+                        <div class="border rounded-lg p-4">
+                            <h5 class="font-semibold text-green-600 mb-3 flex items-center">
+                                <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                                Pattern Rules (Regex)
+                            </h5>
+                            <div id="pattern-rules-list" class="space-y-2 max-h-60 overflow-y-auto">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -559,9 +662,67 @@
                 </form>
             </div>
         </div>
+
+        <!-- Add Pattern Modal -->
+        <div id="add-pattern-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-lg font-semibold mb-4">Add Custom Pattern</h3>
+                    
+                    <form id="add-pattern-form">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Pattern Type</label>
+                            <select id="pattern-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <option value="exact">Exact Match</option>
+                                <option value="regex">Regex Pattern</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Pattern</label>
+                            <input type="text" id="pattern-input" placeholder="e.g., whey protein isolate milk" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <p class="text-xs text-gray-500 mt-1">For regex: use patterns like .*whey.*protein.*</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Target Ingredient</label>
+                            <div class="relative">
+                                <input type="text" id="ingredient-search-input" placeholder="Search for ingredient (e.g., 'Whey Protein Isolate')..." 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <input type="hidden" id="ingredient-id-input">
+                                <div id="ingredient-search-results" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto hidden">
+                                    <!-- Search results will be populated here -->
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Search and select the ingredient you want to map to</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-2">Description (Optional)</label>
+                            <input type="text" id="description-input" placeholder="Brief description..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        
+                        <div class="flex justify-end gap-2">
+                            <button type="button" id="cancel-pattern" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                                Cancel
+                            </button>
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                Add Pattern
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
     </div>
     <!-- End main content wrapper -->
+
+    <!-- Hidden file inputs for CSV import/restore -->
+    <input type="file" id="csv-import-input" accept=".csv" style="display: none;">
+    <input type="file" id="backup-restore-input" accept=".json" style="display: none;">
 
     <script>
         // Global state
@@ -625,6 +786,9 @@
             if (productUnmappedProgress) productUnmappedProgress.textContent = '';
             // Ensure all event listeners are attached
             setupEventListeners();
+            
+            // Initialize statistics on page load
+            updateMappingStatistics();
         });
 
         function setupEventListeners() {
@@ -656,6 +820,19 @@
             if (cancelMappingBtn) cancelMappingBtn.addEventListener('click', closeModal);
             const confirmMappingBtn = document.getElementById('confirm-mapping');
             if (confirmMappingBtn) confirmMappingBtn.addEventListener('click', confirmMapping);
+            
+            // Add event delegation for search results (backup method)
+            const searchResults = document.getElementById('search-results');
+            if (searchResults) {
+                searchResults.addEventListener('click', function(e) {
+                    const clickedDiv = e.target.closest('[data-ingredient-id]');
+                    if (clickedDiv) {
+                        const ingredientId = clickedDiv.getAttribute('data-ingredient-id');
+                        const ingredientName = clickedDiv.getAttribute('data-ingredient-name');
+                        selectIngredient(parseInt(ingredientId), ingredientName);
+                    }
+                });
+            }
             const ingredientSearch = document.getElementById('ingredient-search');
             if (ingredientSearch) ingredientSearch.addEventListener('input', searchIngredients);
             // Live logs controls
@@ -704,6 +881,227 @@
                 productUnmappedPage = 1;
                 populateProductUnmappedTable();
             });
+
+            // Pattern Management Event Listeners (moved from DOMContentLoaded)
+            console.log('[PATTERN DEBUG] Setting up pattern management listeners in setupEventListeners');
+            
+            // Add pattern button
+            const addPatternBtn = document.getElementById('add-pattern-btn');
+            if (addPatternBtn) {
+                console.log('[PATTERN DEBUG] Add pattern button found in setupEventListeners');
+                addPatternBtn.addEventListener('click', () => {
+                    console.log('[PATTERN DEBUG] Add pattern button clicked');
+                    resetPatternForm(); // Reset form for new pattern
+                    document.getElementById('add-pattern-modal').classList.remove('hidden');
+                });
+            } else {
+                console.log('[PATTERN DEBUG] Add pattern button NOT found in setupEventListeners');
+            }
+
+            // Cancel pattern button
+            const cancelPatternBtn = document.getElementById('cancel-pattern');
+            if (cancelPatternBtn) {
+                cancelPatternBtn.addEventListener('click', () => {
+                    document.getElementById('add-pattern-modal').classList.add('hidden');
+                    resetPatternForm();
+                });
+            }
+
+            // Test single ingredient
+            const testSingleBtn = document.getElementById('test-single-btn');
+            if (testSingleBtn) {
+                testSingleBtn.addEventListener('click', () => {
+                    const ingredient = document.getElementById('test-ingredient').value.trim();
+                    if (ingredient) {
+                        testSingleIngredient(ingredient);
+                    }
+                });
+            }
+
+            // Test samples button
+            const testSamplesBtn = document.getElementById('test-samples-btn');
+            if (testSamplesBtn) {
+                testSamplesBtn.addEventListener('click', () => {
+                    testSampleIngredients();
+                });
+            }
+
+            // Add pattern form
+            const addPatternForm = document.getElementById('add-pattern-form');
+            if (addPatternForm) {
+                addPatternForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const isEditing = addPatternForm.dataset.isEditing === 'true';
+                    const originalPattern = addPatternForm.dataset.originalPattern;
+                    const originalType = addPatternForm.dataset.originalType;
+                    
+                    const formData = {
+                        type: document.getElementById('pattern-type').value,
+                        pattern: document.getElementById('pattern-input').value.trim(),
+                        ingredient_id: parseInt(document.getElementById('ingredient-id-input').value),
+                        description: document.getElementById('description-input').value.trim()
+                    };
+                    
+                    try {
+                        if (isEditing) {
+                            // For editing: delete old pattern first, then add new one
+                            console.log(`[PATTERN DEBUG] Editing pattern: deleting old ${originalType}:${originalPattern}, adding new ${formData.type}:${formData.pattern}`);
+                            
+                            // Delete old pattern
+                            const deleteResponse = await fetch('/api/custom-patterns', {
+                                method: 'DELETE',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({type: originalType, pattern: originalPattern})
+                            });
+                            
+                            if (!deleteResponse.ok) {
+                                throw new Error('Failed to delete old pattern');
+                            }
+                        }
+                        
+                        // Add new/updated pattern
+                        const response = await fetch('/api/custom-patterns', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(formData)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            showNotification(isEditing ? 'Pattern updated successfully!' : data.message, 'success');
+                            document.getElementById('add-pattern-modal').classList.add('hidden');
+                            resetPatternForm();
+                            loadCustomPatterns(); // Reload patterns
+                        } else {
+                            showNotification('Error: ' + data.error, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error with pattern operation:', error);
+                        showNotification('Error with pattern operation', 'error');
+                    }
+                });
+            }
+
+            // Load patterns when pattern management tab is clicked
+            const patternTab = document.querySelector('[data-tab="pattern-management"]');
+            if (patternTab) {
+                console.log('[PATTERN DEBUG] Pattern tab found in setupEventListeners');
+                patternTab.addEventListener('click', () => {
+                    console.log('[PATTERN DEBUG] Pattern tab clicked, loading patterns');
+                    setTimeout(loadCustomPatterns, 100); // Small delay to ensure tab is visible
+                });
+            } else {
+                console.log('[PATTERN DEBUG] Pattern tab NOT found in setupEventListeners');
+            }
+
+            // Ingredient search functionality
+            const ingredientSearchInput = document.getElementById('ingredient-search-input');
+            if (ingredientSearchInput) {
+                let searchTimeout;
+                ingredientSearchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    const query = e.target.value.trim();
+                    
+                    if (query.length < 2) {
+                        document.getElementById('ingredient-search-results').classList.add('hidden');
+                        return;
+                    }
+                    
+                    // Debounce search requests
+                    searchTimeout = setTimeout(() => {
+                        searchIngredientsForPatterns(query);
+                    }, 300);
+                });
+
+                // Hide results when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#ingredient-search-input') && !e.target.closest('#ingredient-search-results')) {
+                        document.getElementById('ingredient-search-results').classList.add('hidden');
+                    }
+                });
+            }
+
+            // CSV Export/Import and Backup functionality
+            const exportCsvBtn = document.getElementById('export-patterns-csv-btn');
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', () => {
+                    window.location.href = '/api/patterns/export-csv';
+                });
+            }
+
+            const importCsvBtn = document.getElementById('import-patterns-csv-btn');
+            if (importCsvBtn) {
+                importCsvBtn.addEventListener('click', () => {
+                    document.getElementById('csv-import-input').click();
+                });
+            }
+
+            const csvImportInput = document.getElementById('csv-import-input');
+            if (csvImportInput) {
+                csvImportInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    if (!confirm('This will replace all current patterns. Are you sure? (A backup will be created automatically)')) {
+                        e.target.value = '';
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                        showNotification('Importing patterns...', 'info');
+                        
+                        const response = await fetch('/api/patterns/import-csv', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showNotification(`✅ ${result.message}`, 'success');
+                            if (result.warnings && result.warnings.length > 0) {
+                                console.warn('Import warnings:', result.warnings);
+                                showNotification(`⚠️ ${result.warning_count} warnings (check console)`, 'warning');
+                            }
+                            loadCustomPatterns(); // Reload patterns display
+                        } else {
+                            showNotification(`❌ Import failed: ${result.error}`, 'error');
+                            if (result.errors) {
+                                console.error('Import errors:', result.errors);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        showNotification('❌ Import failed', 'error');
+                    }
+
+                    e.target.value = ''; // Reset file input
+                });
+            }
+
+            const backupBtn = document.getElementById('backup-patterns-btn');
+            if (backupBtn) {
+                backupBtn.addEventListener('click', async () => {
+                    try {
+                        const response = await fetch('/api/patterns/backup', { method: 'POST' });
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showNotification(`✅ ${result.message}`, 'success');
+                        } else {
+                            showNotification(`❌ Backup failed: ${result.error}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Backup error:', error);
+                        showNotification('❌ Backup failed', 'error');
+                    }
+                });
+            }
         }
 
         function updateConfidenceDisplay() {
@@ -807,6 +1205,9 @@
                     document.getElementById('process-btn').disabled = false;
                     updateLogs(response.data.logs);
                     showNotification('Data loaded successfully!', 'success');
+                    
+                    // Update mapping statistics after data load
+                    updateMappingStatistics();
                 } else {
                     showNotification('Failed to load data', 'error');
                 }
@@ -1322,7 +1723,18 @@
                             div.className = 'p-2 hover:bg-blue-50 cursor-pointer border-b';
                             const regex = new RegExp(`(${prefill})`, 'gi');
                             div.innerHTML = ingredient.name.replace(regex, '<span class="bg-yellow-200">$1</span>');
-                            div.onclick = () => selectIngredient(ingredient.id, ingredient.name);
+                            
+                            // Store data attributes
+                            div.setAttribute('data-ingredient-id', ingredient.ingredient_id);
+                            div.setAttribute('data-ingredient-name', ingredient.name);
+                            
+                            // Use addEventListener instead of onclick
+                            div.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                selectIngredient(ingredient.ingredient_id, ingredient.name);
+                            });
+                            
                             resultsDiv.appendChild(div);
                         });
                         resultsDiv.classList.remove('hidden');
@@ -1330,7 +1742,7 @@
                         // Auto-select the best match (first result)
                         const bestMatch = results[0];
                         if (bestMatch) {
-                            selectIngredient(bestMatch.id, bestMatch.name);
+                            selectIngredient(bestMatch.ingredient_id, bestMatch.name);
                         }
                     } else {
                         resultsDiv.innerHTML = '<div class="p-2 text-gray-500">No matches found</div>';
@@ -1404,7 +1816,18 @@
                         // Highlight match
                         const regex = new RegExp(`(${query})`, 'gi');
                         div.innerHTML = ingredient.name.replace(regex, '<span class="bg-yellow-200">$1</span>');
-                        div.onclick = () => selectIngredient(ingredient.id, ingredient.name);
+                        
+                        // Store data attributes for the click handler
+                        div.setAttribute('data-ingredient-id', ingredient.ingredient_id);
+                        div.setAttribute('data-ingredient-name', ingredient.name);
+                        
+                        // Use addEventListener instead of onclick for better compatibility
+                        div.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            selectIngredient(ingredient.ingredient_id, ingredient.name);
+                        });
+                        
                         resultsDiv.appendChild(div);
                     });
                     resultsDiv.classList.remove('hidden');
@@ -1492,6 +1915,9 @@
                         showNotification('Batch mapping completed!', 'success');
                         addChangelogEntry(`Batch mapped ${batchCount} ingredients`, 'batch-mapping');
                         
+                        // Update mapping statistics
+                        updateMappingStatistics();
+                        
                         // Perform updates asynchronously in background
                         (async () => {
                             try {
@@ -1570,6 +1996,9 @@
                         
                         // Add changelog entry
                         addChangelogEntry(`Bulk mapped "${window.currentBulkIngredient}" (${response.data.mapped_count} instances)`, 'mapping');
+                        
+                        // Update mapping statistics
+                        updateMappingStatistics();
                         
                         // Perform updates asynchronously in background
                         (async () => {
@@ -1675,6 +2104,9 @@
 
                     showNotification(`Ingredient ${action} successfully!`, 'success');
                     addChangelogEntry(`${action.charAt(0).toUpperCase() + action.slice(1)} ingredient: ${ingredientName}${oldMatch}${productName ? ` in ${productName}` : ''}`, 'mapping');
+                    
+                    // Update mapping statistics
+                    updateMappingStatistics();
                     
                     // Trigger the single, reliable, state-preserving refresh function for both map and remap
                     loadProductUnmapped();
@@ -2220,6 +2652,39 @@
             }
         }
 
+        // Update ingredient-level mapping statistics
+        async function updateMappingStatistics() {
+            try {
+                const response = await axios.get('/api/results');
+                if (response.data && response.data.mapped !== undefined && response.data.unmapped !== undefined) {
+                    const mappedCount = response.data.mapped.length || 0;
+                    const unmappedCount = response.data.unmapped.length || 0;
+                    const total = mappedCount + unmappedCount;
+                    
+                    // Update mapped/unmapped counts
+                    const mappedCountEl = document.getElementById('mapped-count');
+                    const unmappedCountEl = document.getElementById('unmapped-count');
+                    const completionPercentageEl = document.getElementById('products-completion-percentage');
+                    
+                    if (mappedCountEl) mappedCountEl.textContent = mappedCount;
+                    if (unmappedCountEl) unmappedCountEl.textContent = unmappedCount;
+                    
+                    // Update completion percentage
+                    if (completionPercentageEl) {
+                        const percentage = total > 0 ? ((mappedCount / total) * 100).toFixed(1) : '0';
+                        completionPercentageEl.textContent = percentage + '%';
+                    }
+                    
+                    console.log(`[STATS] Updated: ${mappedCount} mapped, ${unmappedCount} unmapped (${total > 0 ? ((mappedCount / total) * 100).toFixed(1) : '0'}%)`);
+                    
+                    // Also update product-level progress
+                    await updateDashboardProgress();
+                }
+            } catch (error) {
+                console.error('Error updating mapping statistics:', error);
+            }
+        }
+
         // In populateProductUnmappedTable, update event listeners:
         // After rendering the expandable row, add:
         document.querySelectorAll('.map-alt-btn').forEach(btn => {
@@ -2380,6 +2845,7 @@
                                 });
                                 refreshExpandedProductRow(pname);
                                 updateExportPreview();
+                                updateMappingStatistics();
                             } catch (err) {
                                 showNotification('Error updating mapped name: ' + err.message, 'error');
                             }
@@ -2441,6 +2907,7 @@
                     showNotification('Mapped name updated!', 'success');
                     refreshExpandedProductRow(pname);
                     updateExportPreview();
+                    updateMappingStatistics();
                 }).catch(err => showNotification('Error updating mapped name: ' + err.message, 'error'));
             }
         });
@@ -3314,6 +3781,328 @@
             // Add any other handlers for buttons inside your table here (e.g., map-alt-btn)
             console.log('[DEBUG] Event handlers attached.');
         }
+
+        // Pattern Management JavaScript - Add this to the existing script section
+        function loadCustomPatterns() {
+            console.log('[PATTERN DEBUG] Loading custom patterns...');
+            fetch('/api/custom-patterns')
+                .then(response => {
+                    console.log('[PATTERN DEBUG] Got response from /api/custom-patterns:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('[PATTERN DEBUG] Pattern data received:', data);
+                    if (data.success) {
+                        displayPatterns(data.patterns);
+                        updatePatternStats(data.patterns);
+                    } else {
+                        console.error('Error loading patterns:', data.error);
+                    }
+                })
+                .catch(error => console.error('Error loading patterns:', error));
+        }
+
+        function displayPatterns(patterns) {
+            // Display exact mappings
+            const exactList = document.getElementById('exact-mappings-list');
+            exactList.innerHTML = '';
+            
+            Object.entries(patterns.exact_mappings).forEach(([pattern, info]) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-blue-50 rounded border-l-4 border-blue-400';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-mono text-sm font-semibold">"${pattern}"</span>
+                        <div class="text-xs text-gray-600 mt-1">Maps to: ${info.name}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded">ID: ${info.id}</span>
+                        <button onclick="editPattern('exact', '${pattern}', ${info.id})" class="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 bg-blue-100 rounded">
+                            Edit
+                        </button>
+                        <button onclick="deletePattern('exact', '${pattern}')" class="text-red-600 hover:text-red-800 text-xs px-2 py-1 bg-red-100 rounded">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                exactList.appendChild(div);
+            });
+            
+            // Display pattern rules
+            const patternList = document.getElementById('pattern-rules-list');
+            patternList.innerHTML = '';
+            
+            Object.entries(patterns.pattern_rules).forEach(([pattern, info]) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-green-50 rounded border-l-4 border-green-400';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-mono text-sm font-semibold">${pattern}</span>
+                        <div class="text-xs text-gray-600 mt-1">Maps to: ${info.name}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">ID: ${info.id}</span>
+                        <button onclick="editPattern('regex', '${pattern.replace(/'/g, '\\\'').replace(/\./g, '\\.')}', ${info.id})" class="text-green-600 hover:text-green-800 text-xs px-2 py-1 bg-green-100 rounded">
+                            Edit
+                        </button>
+                        <button onclick="deletePattern('regex', '${pattern.replace(/'/g, '\\\'')}')" class="text-red-600 hover:text-red-800 text-xs px-2 py-1 bg-red-100 rounded">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                patternList.appendChild(div);
+            });
+        }
+
+        function updatePatternStats(patterns) {
+            document.getElementById('exact-count').textContent = Object.keys(patterns.exact_mappings).length;
+            document.getElementById('pattern-count').textContent = Object.keys(patterns.pattern_rules).length;
+            document.getElementById('total-patterns').textContent = patterns.total_patterns;
+        }
+
+        function testSingleIngredient(ingredient) {
+            fetch('/api/test-pattern', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ingredients: [ingredient]})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayTestResults(data.results);
+                    if (data.note) {
+                        showNotification(data.note, 'info');
+                    }
+                } else {
+                    console.error('Test failed:', data.error);
+                    showNotification('Pattern test failed: ' + data.error, 'error');
+                    // Show error in test results
+                    const container = document.getElementById('test-results-content');
+                    container.innerHTML = `<div class="p-3 border rounded mb-2 bg-red-50">
+                        <div class="text-red-600">❌ Test Error: ${data.error}</div>
+                        <div class="text-sm text-gray-600 mt-1">Please check that data is loaded and try again.</div>
+                    </div>`;
+                    document.getElementById('test-results').classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Test error:', error);
+                showNotification('Pattern test network error: ' + error.message, 'error');
+                const container = document.getElementById('test-results-content');
+                container.innerHTML = `<div class="p-3 border rounded mb-2 bg-red-50">
+                    <div class="text-red-600">❌ Network Error: ${error.message}</div>
+                    <div class="text-sm text-gray-600 mt-1">Please check your connection and try again.</div>
+                </div>`;
+                document.getElementById('test-results').classList.remove('hidden');
+            });
+        }
+
+        function testSampleIngredients() {
+            fetch('/api/pattern-samples')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        return fetch('/api/test-pattern', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ingredients: data.samples})
+                        });
+                    } else {
+                        throw new Error('Failed to get sample ingredients: ' + data.error);
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayTestResults(data.results);
+                        if (data.note) {
+                            showNotification(data.note, 'info');
+                        }
+                    } else {
+                        showNotification('Sample test failed: ' + data.error, 'error');
+                        const container = document.getElementById('test-results-content');
+                        container.innerHTML = `<div class="p-3 border rounded mb-2 bg-red-50">
+                            <div class="text-red-600">❌ Sample Test Error: ${data.error}</div>
+                            <div class="text-sm text-gray-600 mt-1">Please check that data is loaded and try again.</div>
+                        </div>`;
+                        document.getElementById('test-results').classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Sample test error:', error);
+                    showNotification('Sample test error: ' + error.message, 'error');
+                    const container = document.getElementById('test-results-content');
+                    container.innerHTML = `<div class="p-3 border rounded mb-2 bg-red-50">
+                        <div class="text-red-600">❌ Sample Test Error: ${error.message}</div>
+                        <div class="text-sm text-gray-600 mt-1">Please check your connection and try again.</div>
+                    </div>`;
+                    document.getElementById('test-results').classList.remove('hidden');
+                });
+        }
+
+        function displayTestResults(results) {
+            const container = document.getElementById('test-results-content');
+            container.innerHTML = '';
+            
+            results.forEach(result => {
+                const div = document.createElement('div');
+                div.className = 'p-3 border rounded mb-2';
+                
+                const statusClass = result.matched ? 'text-green-600' : 'text-red-600';
+                const statusIcon = result.matched ? '✅' : '❌';
+                
+                div.innerHTML = `
+                    <div class="font-semibold text-sm">${result.original}</div>
+                    <div class="text-sm ${statusClass}">
+                        ${statusIcon} ${result.matched ? 
+                            `Matched: ${result.matched} (ID: ${result.matched_id}) - ${result.confidence.toFixed(1)}% via ${result.match_type}` :
+                            'No match found'
+                        }
+                    </div>
+                    ${result.alternatives && result.alternatives.length > 0 ? `
+                        <div class="text-xs text-gray-500 mt-1">
+                            Alternatives: ${result.alternatives.slice(0, 2).map(alt => `${alt.name} (${alt.score.toFixed(1)}%)`).join(', ')}
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(div);
+            });
+            
+            document.getElementById('test-results').classList.remove('hidden');
+        }
+
+        function editPattern(type, pattern, ingredientId) {
+            console.log(`[PATTERN DEBUG] Editing ${type} pattern: ${pattern}, ID: ${ingredientId}`);
+            
+            // Pre-fill the modal with current values
+            document.getElementById('pattern-type').value = type;
+            document.getElementById('pattern-input').value = pattern;
+            document.getElementById('ingredient-id-input').value = ingredientId;
+            document.getElementById('description-input').value = '';
+            
+            // Get ingredient name from ID to populate search input
+            fetch(`/api/ingredients/search?id=${ingredientId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        document.getElementById('ingredient-search-input').value = data[0].name;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching ingredient name:', error);
+                    document.getElementById('ingredient-search-input').value = `ID: ${ingredientId}`;
+                });
+            
+            // Change modal title and button text to indicate editing
+            document.querySelector('#add-pattern-modal h3').textContent = 'Edit Pattern';
+            document.querySelector('#add-pattern-form button[type="submit"]').textContent = 'Update Pattern';
+            
+            // Store original pattern for deletion during update
+            document.getElementById('add-pattern-form').dataset.originalPattern = pattern;
+            document.getElementById('add-pattern-form').dataset.originalType = type;
+            document.getElementById('add-pattern-form').dataset.isEditing = 'true';
+            
+            // Show modal
+            document.getElementById('add-pattern-modal').classList.remove('hidden');
+        }
+
+        function resetPatternForm() {
+            const form = document.getElementById('add-pattern-form');
+            form.reset();
+            
+            // Reset modal title and button text
+            document.querySelector('#add-pattern-modal h3').textContent = 'Add Custom Pattern';
+            document.querySelector('#add-pattern-form button[type="submit"]').textContent = 'Add Pattern';
+            
+            // Clear editing state
+            delete form.dataset.originalPattern;
+            delete form.dataset.originalType;
+            delete form.dataset.isEditing;
+            
+            // Clear ingredient search
+            document.getElementById('ingredient-search-input').value = '';
+            document.getElementById('ingredient-id-input').value = '';
+            document.getElementById('ingredient-search-results').classList.add('hidden');
+        }
+
+        function searchIngredientsForPatterns(query) {
+            if (!query || query.length < 2) {
+                document.getElementById('ingredient-search-results').classList.add('hidden');
+                return;
+            }
+            
+            console.log(`[INGREDIENT SEARCH] Searching for: ${query}`);
+            
+            fetch(`/api/ingredients/search?q=${encodeURIComponent(query)}&limit=10`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsContainer = document.getElementById('ingredient-search-results');
+                    resultsContainer.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        resultsContainer.innerHTML = '<div class="p-3 text-gray-500 text-sm">No ingredients found</div>';
+                    } else {
+                        data.forEach(ingredient => {
+                            const resultItem = document.createElement('div');
+                            resultItem.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0';
+                            const ingredientId = ingredient.ingredient_id || ingredient.id; // Handle both field names
+                            resultItem.innerHTML = `
+                                <div class="font-medium text-sm">${ingredient.name}</div>
+                                <div class="text-xs text-gray-500">ID: ${ingredientId}</div>
+                            `;
+                            
+                            resultItem.addEventListener('click', () => {
+                                selectIngredientForPattern(ingredientId, ingredient.name);
+                            });
+                            
+                            resultsContainer.appendChild(resultItem);
+                        });
+                    }
+                    
+                    resultsContainer.classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error searching ingredients:', error);
+                    document.getElementById('ingredient-search-results').classList.add('hidden');
+                });
+        }
+
+        function selectIngredientForPattern(id, name) {
+            console.log(`[INGREDIENT SEARCH] Selected: ${name} (ID: ${id})`);
+            
+            document.getElementById('ingredient-search-input').value = name;
+            document.getElementById('ingredient-id-input').value = id;
+            document.getElementById('ingredient-search-results').classList.add('hidden');
+        }
+
+        function deletePattern(type, pattern) {
+            if (!confirm(`Are you sure you want to delete this ${type} pattern: "${pattern}"?`)) {
+                return;
+            }
+            
+            console.log(`[PATTERN DEBUG] Deleting ${type} pattern: ${pattern}`);
+            
+            fetch('/api/custom-patterns', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({type: type, pattern: pattern})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadCustomPatterns(); // Reload patterns
+                } else {
+                    showNotification('Error: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting pattern:', error);
+                showNotification('Error deleting pattern', 'error');
+            });
+        }
+
+        // Pattern Management event listeners have been moved to setupEventListeners() function
     </script>
 </body>
 </html> 
