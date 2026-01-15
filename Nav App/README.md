@@ -18,12 +18,17 @@ A beautiful destination exploration app that lets you visually plan your day, cr
 pip install -r requirements.txt
 ```
 
-2. Run the application:
+2. (Optional) Initialize with sample data:
+```bash
+python3 init_sample_data.py
+```
+
+3. Run the application:
 ```bash
 python3 app.py
 ```
 
-3. Open your browser and navigate to:
+4. Open your browser and navigate to:
 ```
 http://localhost:5001
 ```
