@@ -11,7 +11,7 @@ A beautiful destination exploration app that lets you visually plan your day, cr
 - 🎨 **Beautiful UI**: Modern, colorful interface inspired by iOS design
 - 💾 **Save & Share**: Save your plans and share them with others
 
-## Installation
+## Quick Start
 
 1. Install dependencies:
 ```bash
@@ -20,13 +20,15 @@ pip install -r requirements.txt
 
 2. Run the application:
 ```bash
-python app.py
+python3 app.py
 ```
 
 3. Open your browser and navigate to:
 ```
 http://localhost:5001
 ```
+
+That's it! You're ready to start exploring and planning your destinations.
 
 ## Usage
 
