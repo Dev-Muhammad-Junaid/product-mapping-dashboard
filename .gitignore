@@ -1,0 +1,5 @@
+# Separate project directories (have their own git repos)
+Wallie App/
+
+# Overview files for separate projects
+WALLIE_APP_OVERVIEW.md
