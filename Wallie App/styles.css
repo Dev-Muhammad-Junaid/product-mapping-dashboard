@@ -1,0 +1,561 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* Device Selector */
+.device-selector {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.device-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.device-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.device-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Content Wrapper */
+.content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+/* Device Frame */
+.device-frame {
+    position: sticky;
+    top: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    border-radius: 45px;
+    background: #1a1a1a;
+    padding: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.device-frame.tablet-frame {
+    max-width: 600px;
+    border-radius: 35px;
+}
+
+.device-frame.web-frame {
+    max-width: 100%;
+    border-radius: 20px;
+    padding: 8px;
+}
+
+/* Lock Screen */
+.lock-screen {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 19.5;
+    border-radius: 35px;
+    overflow: hidden;
+    background: #000;
+    touch-action: none;
+    user-select: none;
+}
+
+.device-frame.tablet-frame .lock-screen {
+    aspect-ratio: 3 / 4;
+}
+
+.device-frame.web-frame .lock-screen {
+    aspect-ratio: 16 / 9;
+}
+
+/* Status Bar */
+.status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 100;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.status-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-icon {
+    opacity: 0.9;
+}
+
+/* Wallpaper Background */
+.wallpaper-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: opacity 0.3s ease;
+}
+
+/* Lock Content */
+.lock-content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px 24px 40px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%);
+}
+
+/* Date & Time */
+.date-time {
+    text-align: center;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.current-day {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    opacity: 0.95;
+}
+
+.large-time {
+    font-size: 80px;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -2px;
+}
+
+/* Lock Widgets */
+.lock-widgets {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.widget-row {
+    display: flex;
+    gap: 16px;
+}
+
+.widget {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 80px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.widget svg {
+    opacity: 0.9;
+}
+
+/* Lock Bar */
+.lock-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.lock-handle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 6px;
+    background: white;
+    border-radius: 3px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Gesture Hint */
+.gesture-hint {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: white;
+    z-index: 50;
+    animation: fadeInOut 3s ease-in-out infinite;
+}
+
+.hint-text {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.hint-arrows {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.hint-arrows svg {
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.hint-arrows svg:last-child {
+    animation-delay: 0.3s;
+}
+
+.hint-subtext {
+    font-size: 14px;
+    opacity: 0.9;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Hold Indicator */
+.hold-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 200;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.hold-indicator.active {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.hold-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hold-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-ring {
+    transition: stroke-dashoffset 0.05s linear;
+}
+
+.hold-text {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    z-index: 1;
+}
+
+/* Navigation Arrows */
+.nav-arrow {
+    position: fixed;
+    z-index: 300;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.nav-arrow.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.nav-arrow-up {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -150px) scale(0);
+}
+
+.nav-arrow-up.show {
+    transform: translate(-50%, -150px) scale(1);
+}
+
+.nav-arrow-left {
+    top: 50%;
+    left: 50%;
+    transform: translate(-150px, -50%) scale(0);
+}
+
+.nav-arrow-left.show {
+    transform: translate(-150px, -50%) scale(1);
+}
+
+/* Wallpaper Gallery */
+.wallpaper-gallery {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+}
+
+.wallpaper-gallery h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.wallpaper-item {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    background-size: cover;
+    background-position: center;
+}
+
+.wallpaper-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.wallpaper-item.active {
+    border-color: white;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.5), 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.gallery-info {
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.9;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .content-wrapper {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .device-frame {
+        position: relative;
+        top: 0;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .large-time {
+        font-size: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        padding: 15px;
+    }
+
+    .device-selector {
+        gap: 10px;
+    }
+
+    .device-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .device-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .wallpaper-gallery {
+        padding: 20px;
+    }
+
+    .wallpaper-gallery h2 {
+        font-size: 24px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+    }
+
+    .large-time {
+        font-size: 70px;
+    }
+
+    .current-day {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .large-time {
+        font-size: 60px;
+    }
+
+    .device-frame {
+        max-width: 100%;
+    }
+
+    .hint-text {
+        font-size: 14px;
+    }
+
+    .hint-arrows svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Animation for wallpaper change */
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideLeft {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.wallpaper-bg.slide-up {
+    animation: slideUp 0.4s ease-out;
+}
+
+.wallpaper-bg.slide-left {
+    animation: slideLeft 0.4s ease-out;
+}
+
+/* Loading State */
+.wallpaper-item.loading {
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}

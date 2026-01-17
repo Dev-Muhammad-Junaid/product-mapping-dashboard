@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Wallie - iOS Wallpaper Customizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Device Selection Header -->
+        <div class="device-selector">
+            <button class="device-btn active" data-device="mobile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+                Mobile
+            </button>
+            <button class="device-btn" data-device="tablet">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+                iPad
+            </button>
+            <button class="device-btn" data-device="web">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                Web
+            </button>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="content-wrapper">
+            <!-- Lock Screen Preview -->
+            <div class="device-frame mobile-frame">
+                <div class="lock-screen" id="lockScreen">
+                    <!-- Status Bar -->
+                    <div class="status-bar">
+                        <div class="status-left">
+                            <span class="time" id="currentTime">9:41</span>
+                        </div>
+                        <div class="status-right">
+                            <svg class="status-icon" width="16" height="11" viewBox="0 0 16 11">
+                                <path d="M0 2h3v7H0V2zm5 0h3v7H5V2zm5 0h3v7h-3V2zm5-2h1v11h-1V0z" fill="white"/>
+                            </svg>
+                            <svg class="status-icon" width="16" height="11" viewBox="0 0 16 11">
+                                <path d="M8 0C3.58 0 0 1.79 0 4c0 1.105 1.34 2.105 3.39 2.783.54-1.256 1.47-2.37 2.61-3.22C5.42 2.84 4.79 2 4 2c1.5 0 2.79 1.08 3.42 2.64.21-.02.42-.03.58-.03 1.1 0 2.1.18 2.93.52C12.42 3.08 13.5 2 15 2c-.79 0-1.42.84-2 1.563 1.14.85 2.07 1.964 2.61 3.22C17.66 6.105 19 5.105 19 4c0-2.21-3.58-4-8-4z" fill="white"/>
+                            </svg>
+                            <svg class="status-icon battery" width="25" height="11" viewBox="0 0 25 11">
+                                <rect x="0" y="0" width="22" height="11" rx="2.5" fill="none" stroke="white" stroke-width="1"/>
+                                <rect x="2" y="2" width="16" height="7" rx="1" fill="white"/>
+                                <rect x="23" y="4" width="2" height="3" rx="1" fill="white"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Wallpaper Background -->
+                    <div class="wallpaper-bg" id="wallpaperBg"></div>
+
+                    <!-- Lock Screen Content -->
+                    <div class="lock-content">
+                        <div class="date-time">
+                            <div class="current-day" id="currentDay">Saturday, January 17</div>
+                            <div class="large-time" id="largeTime">9:41</div>
+                        </div>
+
+                        <div class="lock-widgets">
+                            <div class="widget-row">
+                                <div class="widget widget-small">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                    </svg>
+                                    <span>Weather</span>
+                                </div>
+                                <div class="widget widget-small">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2" fill="none"/>
+                                        <path d="M12 6v6l4 2" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <span>Calendar</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lock Bar -->
+                        <div class="lock-bar">
+                            <div class="lock-handle"></div>
+                        </div>
+
+                        <!-- Gesture Hint -->
+                        <div class="gesture-hint" id="gestureHint">
+                            <div class="hint-text">Hold & Swipe</div>
+                            <div class="hint-arrows">
+                                <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+                                    <path d="M7 11l5-5 5 5M7 18l5-5 5 5"/>
+                                </svg>
+                                <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+                                    <path d="M11 7l-5 5 5 5M18 7l-5 5 5 5"/>
+                                </svg>
+                            </div>
+                            <div class="hint-subtext">to change wallpaper</div>
+                        </div>
+                    </div>
+
+                    <!-- Hold Indicator -->
+                    <div class="hold-indicator" id="holdIndicator">
+                        <div class="hold-circle">
+                            <svg class="hold-progress" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" stroke-width="4" fill="none" stroke="rgba(255,255,255,0.3)"/>
+                                <circle class="progress-ring" cx="50" cy="50" r="45" stroke-width="4" fill="none" stroke="white" stroke-dasharray="283" stroke-dashoffset="283"/>
+                            </svg>
+                            <span class="hold-text">Hold</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallpaper Gallery -->
+            <div class="wallpaper-gallery">
+                <h2>Wallpaper Gallery</h2>
+                <div class="gallery-grid" id="galleryGrid">
+                    <!-- Wallpapers will be dynamically added here -->
+                </div>
+                <div class="gallery-info">
+                    <p>💡 Tap a wallpaper or use hold & swipe gestures on the lock screen</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallpaper Navigation Arrows (for swipe visualization) -->
+        <div class="nav-arrow nav-arrow-up" id="navArrowUp">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                <path d="M7 15l5-5 5 5"/>
+            </svg>
+        </div>
+        <div class="nav-arrow nav-arrow-left" id="navArrowLeft">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                <path d="M15 7l-5 5 5 5"/>
+            </svg>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
