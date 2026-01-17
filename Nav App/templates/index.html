@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Here 2 There - Navigate Your Day</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">Here 2 There</h1>
+                <div class="header-actions">
+                    <button class="btn-icon" id="settingsBtn" title="Settings">
+                        <span>⚙️</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button class="toggle-btn active" data-view="map">🗺️ Map View</button>
+            <button class="toggle-btn" data-view="list">📋 List View</button>
+            <button class="toggle-btn" data-view="shared">🌟 Shared Lists</button>
+        </div>
+
+        <!-- Map View -->
+        <div id="mapView" class="view-container active">
+            <div class="map-canvas" id="mapCanvas">
+                <div class="current-location" id="currentLocation">
+                    <div class="destination-bubble current">
+                        <span class="bubble-emoji">🧭</span>
+                    </div>
+                    <div class="bubble-label">Current</div>
+                </div>
+                <!-- Destinations will be added here dynamically -->
+                <svg class="route-svg" id="routeSvg"></svg>
+            </div>
+            
+            <div class="map-controls">
+                <button class="control-btn" id="addDestinationBtn">
+                    <span>➕</span>
+                    <span>Add Destination</span>
+                </button>
+                <button class="control-btn" id="createRouteBtn">
+                    <span>🛤️</span>
+                    <span>Create Route</span>
+                </button>
+                <button class="control-btn" id="clearRoutesBtn">
+                    <span>🗑️</span>
+                    <span>Clear Routes</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div id="listView" class="view-container">
+            <div class="list-header">
+                <h2>Day Planner</h2>
+                <p>Drag to reorder your destinations</p>
+            </div>
+            <div class="planner-list" id="plannerList">
+                <!-- Planner items will be added here -->
+            </div>
+        </div>
+
+        <!-- Shared Lists View -->
+        <div id="sharedView" class="view-container">
+            <div class="shared-header">
+                <h2>Shared Lists</h2>
+                <button class="btn-primary" id="createListBtn">➕ Create New List</button>
+            </div>
+            <div class="lists-grid" id="listsGrid">
+                <!-- Lists will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Destination Modal -->
+    <div class="modal" id="addDestinationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Destination</h3>
+                <button class="modal-close" id="closeDestinationModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="destName" placeholder="e.g., Work, Home, Gym">
+                </div>
+                <div class="form-group">
+                    <label>Emoji</label>
+                    <div class="emoji-picker">
+                        <button class="emoji-btn" data-emoji="🏠">🏠</button>
+                        <button class="emoji-btn" data-emoji="💼">💼</button>
+                        <button class="emoji-btn" data-emoji="🏫">🏫</button>
+                        <button class="emoji-btn" data-emoji="🏥">🏥</button>
+                        <button class="emoji-btn" data-emoji="🏪">🏪</button>
+                        <button class="emoji-btn" data-emoji="🍕">🍕</button>
+                        <button class="emoji-btn" data-emoji="☕">☕</button>
+                        <button class="emoji-btn" data-emoji="🏋️">🏋️</button>
+                        <button class="emoji-btn" data-emoji="⚽">⚽</button>
+                        <button class="emoji-btn" data-emoji="🎭">🎭</button>
+                        <button class="emoji-btn" data-emoji="🚆">🚆</button>
+                        <button class="emoji-btn" data-emoji="✈️">✈️</button>
+                        <button class="emoji-btn" data-emoji="⛪">⛪</button>
+                        <button class="emoji-btn" data-emoji="🏖️">🏖️</button>
+                        <button class="emoji-btn" data-emoji="🎪">🎪</button>
+                        <button class="emoji-btn" data-emoji="📍">📍</button>
+                    </div>
+                    <input type="hidden" id="destEmoji" value="📍">
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <div class="color-picker">
+                        <button class="color-btn" data-color="#FF6B6B" style="background: #FF6B6B;"></button>
+                        <button class="color-btn" data-color="#4ECDC4" style="background: #4ECDC4;"></button>
+                        <button class="color-btn" data-color="#45B7D1" style="background: #45B7D1;"></button>
+                        <button class="color-btn" data-color="#FFA07A" style="background: #FFA07A;"></button>
+                        <button class="color-btn" data-color="#98D8C8" style="background: #98D8C8;"></button>
+                        <button class="color-btn" data-color="#F7DC6F" style="background: #F7DC6F;"></button>
+                        <button class="color-btn" data-color="#BB8FCE" style="background: #BB8FCE;"></button>
+                        <button class="color-btn" data-color="#85929E" style="background: #85929E;"></button>
+                    </div>
+                    <input type="hidden" id="destColor" value="#4ECDC4">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="destCategory">
+                        <option value="general">General</option>
+                        <option value="food">Food & Dining</option>
+                        <option value="travel">Travel</option>
+                        <option value="work">Work</option>
+                        <option value="leisure">Leisure</option>
+                        <option value="shopping">Shopping</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelDestBtn">Cancel</button>
+                <button class="btn-primary" id="saveDestBtn">Add Destination</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div class="modal" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create List</h3>
+                <button class="modal-close" id="closeListModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>List Name</label>
+                    <input type="text" id="listName" placeholder="e.g., Best Coffee Shops">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="listDescription" placeholder="Tell others about this list..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="listCategory">
+                        <option value="food">Food & Dining</option>
+                        <option value="travel">Travel Destinations</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="listShared">
+                        Share this list publicly
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelListBtn">Cancel</button>
+                <button class="btn-primary" id="saveListBtn">Create List</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
